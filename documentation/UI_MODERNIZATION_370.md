@@ -1,6 +1,6 @@
-# CodeCart PRO 3.7.0 UI modernization
+# CodeCart PRO 3.0.7.0 UI modernization
 
-Branch: `feature/codecart-3.7.0-modernization`. Work is isolated from `main`.
+Repository: `rayzer-dk/codecart-pro-3.0.7.0`; active development branch: `main`. This document records UI work migrated from the previous experimental branch. The old repository is not used for new changes.
 
 ## Stage 1: reusable UI foundation (implemented in this branch)
 
