@@ -131,7 +131,7 @@ jobs:
           test -f upload/admin/view/template/tool/codecart_core.twig
           test -f upload/catalog/view/javascript/codecart-bs5-preview/bootstrap-5.3.9.bundle.min.js
           test -f upload/admin/view/stylesheet/codecart-main-ui.css
-          test -f .github/workflows/modernization-pilot-qa.yml
+          # Workflow definitions require a separate authorized upload.
           php -l upload/admin/controller/tool/codecart_core.php
           php -l upload/index.php
           php -l upload/admin/index.php
