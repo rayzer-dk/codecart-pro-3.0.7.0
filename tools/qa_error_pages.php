@@ -97,7 +97,7 @@ if (!is_file($logoFile) || !is_file($originalLogo) || hash_file('sha256', $logoF
 }
 $checks++;
 $fallbackHtml = codecart_error_page();
-if (strpos($fallbackHtml, '<img') !== false || strpos($fallbackHtml, 'ccp-error__brand') !== false) {
+if (strpos($fallbackHtml, '<img') !== false || strpos($fallbackHtml, 'class="ccp-error__brand') !== false) {
     fwrite(STDERR, "FAIL: 500 page contains graphical logo\n"); exit(1);
 }
 $checks++;
@@ -164,8 +164,9 @@ foreach (array('en-gb', 'ru-ru', 'uk-ua') as $locale) {
     if (strpos($html, 'ccp-error--500') === false ||
         strpos($html, 'STATUS / SERVER ERROR') !== false || strpos($html, 'aria-labelledby="ccp-error-title"') === false ||
         strpos($html, 'Content-Security-Policy') === false ||
-        strpos($html, 'img-src data:') === false ||
-        strpos($html, 'src="data:image/webp;base64,') === false ||
+        strpos($html, "img-src 'none'") === false ||
+        strpos($html, '<img') !== false ||
+        strpos($html, 'src="data:image/') !== false ||
         strpos($html, '<script') !== false || strpos($html, '<link') !== false ||
         strpos($html, 'font.googleapis') !== false) {
         fwrite(STDERR, "FAIL: standalone 500 must be secure and dependency-free\n"); exit(1);
