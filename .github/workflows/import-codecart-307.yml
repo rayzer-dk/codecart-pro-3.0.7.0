@@ -1,0 +1,124 @@
+name: Import complete CodeCart PRO 3.0.7.0 source
+on:
+  push:
+    paths:
+      - .github/workflows/import-codecart-307.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: codecart307-one-time-import
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    if: github.repository == 'rayzer-dk/codecart-pro-3.0.7.0' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - name: Checkout destination main including history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Fetch legacy repository read-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "CodeCart PRO migration"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add legacy https://github.com/rayzer-dk/CodeCart-3-0-6.git
+          git fetch --no-tags legacy \
+            refs/heads/main:refs/remotes/legacy/main \
+            refs/heads/feature/codecart-3.7.0-modernization:refs/remotes/legacy/modern
+          echo "Legacy main: $(git rev-parse legacy/main)"
+          echo "Modernization: $(git rev-parse legacy/modern)"
+      - name: Combine original main and modernization, retaining recent main corrections
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge --allow-unrelated-histories --no-edit -s ort -X theirs legacy/main
+          git merge --no-edit -s ort -X ours legacy/modern
+          # Composer dependencies and lock must represent the modernization profile.
+          git checkout legacy/modern -- composer.json composer.lock
+      - name: Name release 3.0.7.0 and correct core compatibility descriptions
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          for filename in ('upload/index.php','upload/admin/index.php'):
+              p=Path(filename)
+              s=p.read_text()
+              for old,new in (
+                  ("define('VERSION', '3.0.6.0');","define('VERSION', '3.0.7.0');"),
+                  ("define('CODECART_BUILD', '3.0.6.0');","define('CODECART_BUILD', '3.0.7.0');"),
+                  ("define('CODECART_BASE', 'CodeCart PRO 3.0.6.0');","define('CODECART_BASE', 'CodeCart PRO 3.0.7.0');")
+              ):
+                  if old not in s: raise SystemExit('Missing release constant in '+filename+': '+old)
+                  s=s.replace(old,new,1)
+              p.write_text(s)
+          p=Path('composer.json')
+          d=json.loads(p.read_text())
+          d['name']='codecart/codecart-pro-3.0.7.0'
+          d['description']='CodeCart PRO 3.0.7.0 modernization based on OpenCart/ocStore 3.x'
+          p.write_text(json.dumps(d,ensure_ascii=False,indent=2)+'\n')
+          p=Path('upload/admin/view/template/tool/codecart_core.twig')
+          s=p.read_text()
+          s=s.replace('CodeCart PRO 3.0.6.x','CodeCart PRO 3.0.7.0')
+          p.write_text(s)
+          p=Path('upload/admin/controller/tool/codecart_core.php')
+          s=p.read_text()
+          fixed={
+            "'PHP 8.1–8.5'":"'PHP 8.2–8.5'",
+            "'codecart'=>'7.15.5'":"'codecart'=>'8.5.2'",
+            "'codecart'=>'3.28.0'":"'codecart'=>'3.30.0'",
+            "'codecart'=>'2.5.3'":"'codecart'=>'3.1.x (composer)'",
+            "'codecart'=>'2.13.1'":"'codecart'=>'3.4.x (composer)'",
+            "'codecart'=>'6.4.45'":"'codecart'=>'7.4.x (composer)'",
+            "'codecart'=>'3.4.1','status'=>'added'":"'codecart'=>'3.4.1 legacy / 4.0.2 preview','status'=>'added'",
+            "'codecart'=>'3.7.1 Legacy Core'":"'codecart'=>'3.7.1 legacy / 4.1.0 preview'",
+            "'codecart'=>'3.4.1 Legacy Core'":"'codecart'=>'3.4.1 legacy / 5.3.9 preview'",
+            "'codecart'=>'6.7.2 + AUTO/Core/Full + FA4 compatibility'":"'codecart'=>'7.3.1 + AUTO/Core/Full + FA4 compatibility'",
+            "'codecart'=>'5.65.21'":"'codecart'=>'5.65.21 legacy / 6 preview'",
+            "'codecart'=>'2.30.1'":"'codecart'=>'2.30.1 legacy / 2.31.0 preview'"
+          }
+          for old,new in fixed.items():
+              if old in s: s=s.replace(old,new,1)
+          p.write_text(s)
+          for lang in ('uk-ua','ru-ru','en-gb'):
+              p=Path('upload/admin/language')/lang/'tool/codecart_core.php'
+              if p.exists():
+                  s=p.read_text().replace('Font Awesome 6.7.2','Font Awesome 7.3.1')
+                  p.write_text(s)
+          Path('documentation/MIGRATION_307_STATUS.md').write_text(
+            '# CodeCart PRO 3.0.7.0\n\n'
+            'Source: CodeCart-3-0-6 main and feature/codecart-3.7.0-modernization.\n'
+            'Full Git histories merged in the new repository. Source repository is unchanged.\n'
+            'Conflict strategy: preserve legacy main changes on overlapping hunks; modernization-only files are imported.\n'
+            'Release status: migration preview; real-store E2E, OCMOD and payments are not certified.\n'
+          )
+          PY
+      - name: Validate migration contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f upload/admin/controller/tool/codecart_core.php
+          test -f upload/admin/view/template/tool/codecart_core.twig
+          test -f upload/catalog/view/javascript/codecart-bs5-preview/bootstrap-5.3.9.bundle.min.js
+          test -f upload/admin/view/stylesheet/codecart-main-ui.css
+          test -f .github/workflows/modernization-pilot-qa.yml
+          php -l upload/admin/controller/tool/codecart_core.php
+          php -l upload/index.php
+          php -l upload/admin/index.php
+          git diff --check
+      - name: Commit and push imported system into new main only
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -A
+          git diff --cached --quiet || git commit -m "chore(release): CodeCart PRO 3.0.7.0 naming and compatibility report"
+          git push origin HEAD:main
