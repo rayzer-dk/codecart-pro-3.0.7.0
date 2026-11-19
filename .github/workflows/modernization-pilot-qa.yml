@@ -23,6 +23,12 @@ jobs:
           node-version: '24'
       - name: Check source and assets
         run: node experiments/bootstrap5-fa7/tools/check-preview.cjs
+      - name: PWA install event race and Workbox contract
+        run: |
+          node --check tools/qa_pwa_install_prompt.cjs
+          node tools/qa_pwa_install_prompt.cjs
+          node tools/qa_workbox_hybrid.cjs
+          php tests/pwa_install_smoke.php
       - name: Validate JavaScript smoke test syntax before Chromium
         run: |
           for test in \
