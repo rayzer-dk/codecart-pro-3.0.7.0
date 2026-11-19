@@ -524,7 +524,7 @@ class ControllerToolCodeCartCore extends Controller {
     }
 
     private function serverRequirements() {
-        $phpOk = version_compare(PHP_VERSION, '8.1.0', '>=') && version_compare(PHP_VERSION, '8.6.0', '<');
+        $phpOk = version_compare(PHP_VERSION, '8.2.0', '>=') && version_compare(PHP_VERSION, '8.6.0', '<');
         $required = array(
             array('name'=>'PHP 8.2–8.5','value'=>PHP_VERSION . ' / ' . PHP_SAPI,'required'=>true,'ok'=>$phpOk),
             array('name'=>'mysqli / pdo_mysql','value'=>(extension_loaded('mysqli') ? 'mysqli ' : '') . (extension_loaded('pdo_mysql') ? 'pdo_mysql' : ''),'required'=>true,'ok'=>extension_loaded('mysqli') || extension_loaded('pdo_mysql')),
@@ -624,7 +624,7 @@ class ControllerToolCodeCartCore extends Controller {
         $installedSchema = (string)$this->config->get('codecart_core_schema_version');
         $installedPresentation = (string)$this->config->get('codecart_presentation_schema_version');
         return $this->escapeHtml(array(
-            'product' => 'CodeCart ' . VERSION,
+            'product' => 'CodeCart PRO 3.0.7.0',
             'build' => CODECART_PACKAGE_BUILD,
             'upstream' => CODECART_UPSTREAM,
             'schema' => \CodeCart\Migration::VERSION,
@@ -653,20 +653,20 @@ class ControllerToolCodeCartCore extends Controller {
             array('component'=>'scssphp','opencart'=>'2.1.0 runtime','ocstore'=>'2.0.1 runtime','codecart'=>'2.1.0 manual / CLI only','status'=>'updated'),
             array('component'=>'Symfony Filesystem','opencart'=>'6.4.34','ocstore'=>'6.4.13','codecart'=>'7.4.23','status'=>'updated'),
             array('component'=>'Symfony Polyfill Mbstring','opencart'=>'1.37.0','ocstore'=>'1.32.0','codecart'=>'1.43.3','status'=>'updated'),
-            array('component'=>'jQuery Migrate','opencart'=>'—','ocstore'=>'—','codecart'=>'3.6.0 legacy / 4.0.2 preview','status'=>'added'),
-            array('component'=>'jQuery','opencart'=>'3.7.1','ocstore'=>'3.7.1','codecart'=>'3.8.0 legacy / 4.1.0 preview','status'=>'legacy'),
-            array('component'=>'Bootstrap','opencart'=>'3.4.1','ocstore'=>'3.4.1','codecart'=>'3.4.1 legacy / 5.3.9 preview','status'=>'legacy'),
+            array('component'=>'jQuery Migrate','opencart'=>'—','ocstore'=>'—','codecart'=>'4.0.2 default / 3.6.0 fallback','status'=>'added'),
+            array('component'=>'jQuery','opencart'=>'3.7.1','ocstore'=>'3.7.1','codecart'=>'4.1.0 default / 3.8.0 fallback','status'=>'legacy'),
+            array('component'=>'Bootstrap','opencart'=>'3.4.1','ocstore'=>'3.4.1','codecart'=>'5.3.9 default / 3.4.1 fallback','status'=>'legacy'),
             array('component'=>'Font Awesome','opencart'=>'4.7.0','ocstore'=>'4.7.0','codecart'=>'7.3.1 + AUTO/Core/Full + FA4 compatibility','status'=>'updated'),
             array('component'=>'Content editor','opencart'=>'Summernote 0.8.18','ocstore'=>'Summernote 0.8.18','codecart'=>'Summernote 0.9.1 local','status'=>'updated'),
-            array('component'=>'CodeMirror','opencart'=>'5.15.3','ocstore'=>'5.15.3','codecart'=>'5.65.21 legacy / 6 preview','status'=>'updated'),
+            array('component'=>'CodeMirror','opencart'=>'5.15.3','ocstore'=>'5.15.3','codecart'=>'6 editors / 5.65.21 legacy','status'=>'updated'),
             array('component'=>'Magnific Popup','opencart'=>'1.1.0','ocstore'=>'1.1.0','codecart'=>'1.2.0','status'=>'updated'),
             array('component'=>'PhotoSwipe','opencart'=>'—','ocstore'=>'—','codecart'=>'5.4.4','status'=>'added'),
             array('component'=>'HTML Purifier','opencart'=>'—','ocstore'=>'4.18.0','codecart'=>'4.19.0','status'=>'updated'),
-            array('component'=>'Moment.js','opencart'=>'2.18.1','ocstore'=>'2.18.1','codecart'=>'2.30.1 legacy / 2.31.0 preview','status'=>'updated'),
-            array('component'=>'DateTimePicker','opencart'=>'Bootstrap DateTimePicker 3.1.3.1','ocstore'=>'Bootstrap DateTimePicker 3.1.3.1','codecart'=>'CodeCart PRO Hybrid DateTimePicker 1.8.7 / Air Datepicker + Day.js preview','status'=>'updated'),
+            array('component'=>'Moment.js','opencart'=>'2.18.1','ocstore'=>'2.18.1','codecart'=>'2.31.0 legacy fallback','status'=>'updated'),
+            array('component'=>'DateTimePicker','opencart'=>'Bootstrap DateTimePicker 3.1.3.1','ocstore'=>'Bootstrap DateTimePicker 3.1.3.1','codecart'=>'Hybrid DateTimePicker 1.8.7 / Air Datepicker 3.6.0 + Day.js 1.11.23 opt-in','status'=>'updated'),
             array('component'=>'SortableJS','opencart'=>'—','ocstore'=>'1.10.2','codecart'=>'1.15.7','status'=>'updated'),
-            array('component'=>'Swiper','opencart'=>'3.4.2','ocstore'=>'3.4.2','codecart'=>'CodeCart PRO Slider; Swiper 3 Legacy','status'=>'removed_runtime'),
-            array('component'=>'Flot / jQVMap','opencart'=>'Core Dashboard','ocstore'=>'Core Dashboard','codecart'=>'not used by Core Dashboard; Legacy assets retained','status'=>'removed_runtime'),
+            array('component'=>'Swiper','opencart'=>'3.4.2','ocstore'=>'3.4.2','codecart'=>'CodeCart PRO Slider; Swiper 3 legacy compatibility','status'=>'removed_runtime'),
+            array('component'=>'Flot / jQVMap','opencart'=>'Core Dashboard','ocstore'=>'Core Dashboard','codecart'=>'Dashboard does not use them; Flot 4.2.6 / jQVMap 1.5.1 bundled; legacy fallback','status'=>'removed_runtime'),
             array('component'=>'SEO / clean URL','opencart'=>'SEO URL','ocstore'=>'SeoPro','codecart'=>'SeoPro + language prefixes + canonical/faceted policy','status'=>'updated'),
             array('component'=>'Image formats','opencart'=>'JPEG/PNG/WebP','ocstore'=>'JPEG/PNG/WebP','codecart'=>'JPEG/PNG/WebP/AVIF + safe fallback','status'=>'updated'),
             array('component'=>'Cache backends','opencart'=>'File','ocstore'=>'File','codecart'=>'File / APCu / Memcached / Redis + fallback','status'=>'added'),
@@ -715,18 +715,18 @@ class ControllerToolCodeCartCore extends Controller {
 
     private function localizeComparisonRows(array $rows) {
         $map = array(
-            '3.6.0 legacy / 4.0.2 preview'=>'cmp_migrate_modes',
-            '3.8.0 legacy / 4.1.0 preview'=>'cmp_jquery_modes',
-            '3.4.1 legacy / 5.3.9 preview'=>'cmp_bootstrap_modes',
-            '5.65.21 legacy / 6 preview'=>'cmp_codemirror_modes',
-            '2.30.1 legacy / 2.31.0 preview'=>'cmp_moment_modes',
-            'CodeCart PRO Hybrid DateTimePicker 1.8.7 / Air Datepicker + Day.js preview'=>'cmp_datepicker_modes',
+            '4.0.2 default / 3.6.0 fallback'=>'cmp_migrate_modes',
+            '4.1.0 default / 3.8.0 fallback'=>'cmp_jquery_modes',
+            '5.3.9 default / 3.4.1 fallback'=>'cmp_bootstrap_modes',
+            '6 editors / 5.65.21 legacy'=>'cmp_codemirror_modes',
+            '2.31.0 legacy fallback'=>'cmp_moment_modes',
+            'Hybrid DateTimePicker 1.8.7 / Air Datepicker 3.6.0 + Day.js 1.11.23 opt-in'=>'cmp_datepicker_modes',
             '7.3.1 + AUTO/Core/Full + FA4 compatibility'=>'cmp_fa_73',
             'Content editor'=>'cmp_content_editor','Image formats'=>'cmp_image_formats','Cache backends'=>'cmp_cache_backends','Scheduler / Queue'=>'cmp_scheduler_queue',
             'System Notifications'=>'cmp_system_notifications','Central Spam Service'=>'cmp_spam_service','Built-in'=>'cmp_builtin','Built-in, opt-in on UPDATE'=>'cmp_builtin_optin',
             'TOTP + trusted device layer'=>'cmp_totp','Read-only diagnostics + migrations'=>'cmp_schema','PSR-4 / Services / Manifest / Extension Points'=>'cmp_modern',
             'contact / reviews / registration / forgotten / returns / GDPR'=>'cmp_spam_scope','form-specific'=>'cmp_form_specific','Core Dashboard'=>'cmp_core_dashboard',
-            'not used by Core Dashboard; Legacy assets retained'=>'cmp_legacy_assets','CodeCart PRO Slider; Swiper 3 Legacy'=>'cmp_slider','3.7.1 Legacy Core'=>'cmp_jquery_legacy','3.4.1 Legacy Core'=>'cmp_bootstrap_legacy',
+            'Dashboard does not use them; Flot 4.2.6 / jQVMap 1.5.1 bundled; legacy fallback'=>'cmp_legacy_assets','CodeCart PRO Slider; Swiper 3 legacy compatibility'=>'cmp_slider','3.7.1 Legacy Core'=>'cmp_jquery_legacy','3.4.1 Legacy Core'=>'cmp_bootstrap_legacy',
             '2.1.0 manual / CLI only'=>'cmp_scss_cli','2.1.0 runtime'=>'cmp_scss_runtime_oc','2.0.1 runtime'=>'cmp_scss_runtime_ocs','SeoPro + language prefixes + canonical/faceted policy'=>'cmp_seo',
             'JPEG/PNG/WebP/AVIF + safe fallback'=>'cmp_images','File / APCu / Memcached / Redis + fallback'=>'cmp_cache','File'=>'cmp_file','7.3.1 + AUTO/Core/Full + FA4 compatibility'=>'cmp_fa','Summernote 0.9.1 local'=>'cmp_summernote'
         );
