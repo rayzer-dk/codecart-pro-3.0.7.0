@@ -28,7 +28,6 @@ jobs:
           node --check tools/qa_pwa_install_prompt.cjs
           node tools/qa_pwa_install_prompt.cjs
           node tools/qa_workbox_hybrid.cjs
-          php tests/pwa_install_smoke.php
       - name: Validate JavaScript smoke test syntax before Chromium
         run: |
           for test in \
@@ -59,6 +58,8 @@ jobs:
           php tools/qa_unishop2_369.php
       - name: Core/About versions and localization contracts
         run: php tools/qa_core_about_versions.php
+      - name: PWA manifest and generated icons (PHP)
+        run: php tests/pwa_install_smoke.php
       - name: Composer manifest and lock validity
         run: composer validate --no-check-publish
 
