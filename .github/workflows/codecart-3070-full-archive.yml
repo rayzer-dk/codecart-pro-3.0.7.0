@@ -1,0 +1,98 @@
+name: CodeCart PRO 3.0.7.0 Full Installable Archive
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/codecart-3070-full-archive.yml'
+      - 'tools/package_production.py'
+      - 'tools/refresh_integrity.php'
+      - 'tools/package_documentation.py'
+      - 'tools/vendor_workbox.mjs'
+      - 'upload/**'
+      - 'composer.json'
+      - 'composer.lock'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codecart-pro-3070-full-archive-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  package:
+    name: Build, verify and upload full installable ZIP
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    steps:
+      - name: Checkout complete source tree
+        uses: actions/checkout@v4
+      - name: Install PHP 8.4 and locked Composer
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, curl, openssl, zip, xml, simplexml, xmlreader, mysqli, pdo_mysql, gd
+          coverage: none
+          tools: composer:2.11.2
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate and install Composer runtime dependencies
+        run: |
+          composer validate --no-check-publish
+          composer install --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader
+          composer check-platform-reqs
+      - name: Rebuild pinned Font Awesome Free 7.3.1 Core
+        run: |
+          python -m pip install 'fonttools[woff]>=4.55,<5' brotli
+          python tools/build_fontawesome_core.py
+      - name: Rebuild minified storefront and admin assets
+        run: bash tools/build_theme_css.sh
+      - name: Generate versioned documentation and verified Workbox 7.4.1 assets
+        run: |
+          python tools/package_documentation.py
+          node tools/vendor_workbox.mjs
+      - name: Refresh integrity and run release validation
+        run: |
+          php tools/refresh_integrity.php
+          php tools/release_check.php
+      - name: Build full installable CodeCart PRO ZIP with Composer vendor
+        run: |
+          mkdir -p artifacts
+          python tools/package_production.py --output artifacts
+      - name: Verify ZIP manifest and SHA-256 against the actual archive
+        run: |
+          python - <<'PY'
+          import hashlib, json, pathlib, zipfile
+          files=list(pathlib.Path('artifacts').glob('CodeCart_PRO_3.0.7.0_Full_Installable.zip'))
+          assert len(files)==1, 'Exactly one versioned ZIP required'
+          file=files[0]
+          with zipfile.ZipFile(file) as z:
+              assert z.testzip() is None, 'ZIP CRC failure'
+              names=set(z.namelist())
+              for expected in ('upload/index.php', 'upload/admin/index.php', 'upload/install/index.php',
+                               'upload/system/storage/vendor/autoload.php', 'upload/system/config/codecart_integrity.json'):
+                  assert expected in names, 'Missing '+expected
+              assert b"CODECART_PACKAGE_BUILD', '3.0.7.0'" in z.read('upload/index.php')
+              assert b"CODECART_PACKAGE_BUILD', '3.0.7.0'" in z.read('upload/install/index.php')
+          manifest=json.loads(file.with_suffix('.zip.manifest.json').read_text())
+          digest=hashlib.sha256(file.read_bytes()).hexdigest()
+          assert manifest['archive_sha256']==digest, 'Package digest mismatch'
+          assert manifest['source_commit']==__import__('subprocess').check_output(['git','rev-parse','HEAD']).decode().strip()
+          print(f'PASS: {file.name}, {len(names)} entries, {file.stat().st_size:,} bytes, SHA256 {digest}')
+          PY
+      - name: Publish complete installable archive, checksums and file manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: CodeCart_PRO_3.0.7.0_Full_Installable
+          path: artifacts/
+          retention-days: 90
+          if-no-files-found: error
+          compression-level: 0
