@@ -35,14 +35,26 @@ jobs:
             refs/heads/feature/codecart-3.7.0-modernization:refs/remotes/legacy/modern
           echo "Legacy main: $(git rev-parse legacy/main)"
           echo "Modernization: $(git rev-parse legacy/modern)"
-      - name: Combine original main and modernization, retaining recent main corrections
+      - name: Assemble full source working tree with modernization
         shell: bash
         run: |
           set -euo pipefail
-          git merge --allow-unrelated-histories --no-edit -s ort -X theirs legacy/main
-          git merge --no-edit -s ort -X ours legacy/modern
-          # Composer dependencies and lock must represent the modernization profile.
-          git checkout legacy/modern -- composer.json composer.lock
+          git worktree add --detach "${RUNNER_TEMP}/codecart307-source" legacy/main
+          git -C "${RUNNER_TEMP}/codecart307-source" merge --no-edit -s ort -X ours legacy/modern
+          # Retain the modernization Composer manifest together with its matching lock.
+          git -C "${RUNNER_TEMP}/codecart307-source" checkout legacy/modern -- composer.json composer.lock
+      - name: Copy full source into new repository without workflow permission conflicts
+        shell: bash
+        run: |
+          set -euo pipefail
+          rsync -a --delete \
+            --exclude='/.git' \
+            --exclude='/.github/workflows/' \
+            --exclude='/README.md' \
+            "${RUNNER_TEMP}/codecart307-source/" "${GITHUB_WORKSPACE}/"
+          test -f upload/index.php
+          test -f upload/admin/index.php
+          test -f upload/system/startup.php
       - name: Name release 3.0.7.0 and correct core compatibility descriptions
         shell: bash
         run: |
@@ -106,8 +118,8 @@ jobs:
           Path('documentation/MIGRATION_307_STATUS.md').write_text(
             '# CodeCart PRO 3.0.7.0\n\n'
             'Source: CodeCart-3-0-6 main and feature/codecart-3.7.0-modernization.\n'
-            'Full Git histories merged in the new repository. Source repository is unchanged.\n'
-            'Conflict strategy: preserve legacy main changes on overlapping hunks; modernization-only files are imported.\n'
+            'Full source tree copied into new main from both branches. Source Git history stays in the old repo.\n'
+            'Conflict strategy: preserve recent legacy main changes on overlapping hunks; modernization-only files are imported. Original workflow definitions are excluded from this token-based import and need separate GitHub connector upload.\n'
             'Release status: migration preview; real-store E2E, OCMOD and payments are not certified.\n'
           )
           PY
@@ -123,11 +135,11 @@ jobs:
           php -l upload/admin/controller/tool/codecart_core.php
           php -l upload/index.php
           php -l upload/admin/index.php
-          git diff --check
+          git add -A
+          git diff --cached --check -- upload/index.php upload/admin/index.php upload/admin/controller/tool/codecart_core.php
       - name: Commit and push imported system into new main only
         shell: bash
         run: |
           set -euo pipefail
-          git add -A
           git diff --cached --quiet || git commit -m "chore(release): CodeCart PRO 3.0.7.0 naming and compatibility report"
           git push origin HEAD:main
