@@ -1,0 +1,36 @@
+<?php
+$_['heading_title']      = 'Search queries';
+$_['text_home']          = 'Home';
+$_['text_help']          = 'What store visitors search for. "No results" lists searches that found nothing even after spelling correction: products or names missing from the site. Data is kept for 90 days; IP addresses are not stored.';
+$_['text_filter_all']    = 'All queries';
+$_['text_filter_zero']   = 'No results';
+$_['text_days']          = 'days';
+$_['text_no_results']    = 'No data yet.';
+$_['text_cleared']       = 'Search query statistics cleared.';
+$_['text_clear_confirm'] = 'Delete all search query statistics?';
+$_['text_pagination']    = 'Showing %d to %d of %d (%d Pages)';
+$_['date_format_short']  = 'd/m/Y';
+$_['button_clear']       = 'Clear statistics';
+$_['column_query']       = 'Query';
+$_['column_searches']    = 'Searches';
+$_['column_zero']        = 'No results';
+$_['column_corrected']   = 'Found after correction';
+$_['column_last']        = 'Last seen';
+
+$_['heading_search_settings'] = 'Smart search settings';
+$_['text_search_store'] = 'Store';
+$_['text_search_index'] = 'Use the search index';
+$_['text_search_index_help'] = 'The index is used only after a complete build for this store and language. Native search remains active until then.';
+$_['text_search_attributes'] = 'Include product attributes';
+$_['text_search_attributes_help'] = 'Match words across product titles and attribute names or values. Requires an enabled, completed index.';
+$_['text_search_synonyms'] = 'Synonyms by language';
+$_['text_search_synonyms_help'] = 'One equivalent-word group per line separated by commas, e.g. pump, waterpump, pompa. Single words only; the original query is preserved.';
+$_['text_search_index_ready'] = 'Index ready';
+$_['text_search_index_needed'] = 'Rebuild required';
+$_['text_search_index_count'] = 'Products indexed';
+$_['text_search_rebuild_warning'] = 'Rebuild after bulk imports or edits to products or attributes. Processing runs in batches of up to 100 products without blocking native search.';
+$_['button_search_save'] = 'Save search settings';
+$_['button_search_rebuild'] = 'Rebuild index';
+$_['text_search_saved'] = 'Search settings saved.';
+$_['text_search_permission'] = 'You do not have permission to change search settings.';
+$_['text_search_too_long'] = 'Synonym dictionary exceeds 6000 bytes.';

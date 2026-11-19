@@ -1,0 +1,9 @@
+CODECART PRO Bootstrap 5.3.9 + Font Awesome 7.3.1 Free
+Состояние экспериментальной ветки от 19.11.2026.
+Для штатных админки и тем CodeCart/Default Bootstrap 5 включён ПО УМОЛЧАНИЮ.
+Резервное включение Bootstrap 3: добавьте ccp_bs5=0 в URL (только для текущего запроса).
+Адаптер css/js: upload/{admin,catalog}/view/javascript/codecart-bs5-preview/
+Редактор Summernote переключается на сборку Bootstrap 5 автоматически; браузерный smoke-тест включён в GitHub Actions.
+Air Datepicker + Day.js остаются отдельным opt-in через ccp_date=air.
+Полная производственная готовность НЕ подтверждена без проверок с реальной БД и сторонними модулями, включая UniShop2.
+См. MIGRATION_REPORT_RU.md.

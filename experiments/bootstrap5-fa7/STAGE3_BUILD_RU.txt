@@ -1,0 +1,9 @@
+ЭТАП 3 — ДАЛЬНЕЙШАЯ МОДЕРНИЗАЦИЯ (эксперимент)
+Текущие реальные изменения: пилот Air Datepicker 3.6.0, совместимый API $.fn.datetimepicker, отдельная UI-переключалка ?ccp_date=air.
+Основной режим CodeCart НЕ переключен; Moment.js, старые Bootstrap DateTimePicker остаются для рабочего режима.
+Для воспроизводимой сборки дополнительных зависимостей:
+cd experiments/bootstrap5-fa7 && npm install --no-audit && npm run build:vendor
+Она подготовит локальный dayjs-1.11.23.min.js, Summernote BS5 и отдельно jQuery 4.1/Migrate 4.0.2.
+jQuery 4 + CodeMirror 6 пока НЕ активированы в сайте. Подключение потребует отдельной проверки API.
+Composer/Guzzle security: при наличии PHP и Composer можно запускать experiments/bootstrap5-fa7/tools/composer-security-update.sh в тестовом клоне. Этот скрипт изменяет composer.json, composer.lock и загрузит зависимости локально; он НЕ запускался для основной ветки.
+Ограничения: React/TypeScript в рамках этих экспериментов не внедряются; модули OpenCart 3 и UniShop2 пока не прошли полную интеграционную проверку.

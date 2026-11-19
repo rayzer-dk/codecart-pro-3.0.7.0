@@ -1,0 +1,200 @@
+/* CodeCart abandoned carts: scoped admin layout. */
+.ccp-carts-page .ccp-cart-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 12px}
+.ccp-carts-page .ccp-cart-kpi{min-width:0;display:flex;align-items:center;gap:12px;border:1px solid #dbe5ef;border-radius:5px;background:#fff;padding:13px 15px}
+.ccp-carts-page .ccp-cart-kpi i{font-size:19px;color:#176bd2;width:24px;text-align:center}
+.ccp-carts-page .ccp-cart-kpi span{flex:1;min-width:0;color:#304963;font-size:12px}
+.ccp-carts-page .ccp-cart-kpi strong{font-size:23px;color:#172f4e;font-weight:700}
+.ccp-carts-page .ccp-cart-brief{display:flex;align-items:center;gap:9px 22px;flex-wrap:wrap;background:#f8fbff;border:1px solid #dfebf6;border-radius:5px;padding:9px 12px;color:#526579;font-size:12px;margin-bottom:14px}
+.ccp-carts-page .ccp-cart-brief .ccp-cart-cron.is-ok{color:#147341}
+.ccp-carts-page .ccp-cart-brief .ccp-cart-cron.is-error{color:#bc3640}
+.ccp-carts-page .ccp-cart-brief .ccp-cart-cron.is-muted{color:#6a7885}
+.ccp-carts-page .ccp-cart-tabs{margin:0;border-bottom:3px solid #0057d9}
+.ccp-carts-page .ccp-cart-tabs>li>a{font-size:13px;color:#294965;padding:10px 14px;border-radius:5px 5px 0 0}
+.ccp-carts-page .ccp-cart-tabs>li.active>a{color:#0057d9;background:#fff;font-weight:600;border-color:#dbe5ef #dbe5ef transparent}
+.ccp-carts-page .ccp-cart-content{background:#fff;border:1px solid #dce4ef;border-top:0;border-radius:0 0 6px 6px;padding:15px}
+.ccp-carts-page .ccp-cart-filter{display:flex;align-items:end;gap:9px;flex-wrap:wrap;margin-bottom:12px}
+.ccp-carts-page .ccp-cart-filter>div:not(.ccp-cart-filter-main){min-width:110px}
+.ccp-carts-page .ccp-cart-filter label{display:block;font-size:12px;color:#314860;margin:0 0 5px}
+.ccp-carts-page .ccp-cart-filter .ccp-cart-filter-main{flex:1 1 260px;min-width:210px}
+.ccp-carts-page .ccp-cart-filter #ccp-filter-contact{min-width:175px}
+.ccp-carts-page .ccp-cart-filter-actions{display:flex;align-items:center;gap:5px}
+.ccp-carts-page .ccp-cart-bulk{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 10px;margin:0 0 10px;background:#f7fafc;border:1px solid #e0e9f2;border-radius:4px}
+.ccp-carts-page .ccp-cart-bulk label{font-size:12px;color:#25405b;margin:0 7px 0 0}
+.ccp-carts-page .ccp-cart-bulk select{max-width:200px}
+.ccp-carts-page .ccp-cart-bulk small{flex:1;text-align:right;font-size:11px}
+.ccp-carts-page .ccp-abandoned-cart-table,.ccp-carts-page .ccp-cart-history-table{border-top:3px solid #0057d9;font-size:12px;margin-bottom:8px}
+.ccp-carts-page .ccp-abandoned-cart-table thead th,.ccp-carts-page .ccp-cart-history-table thead th{font-weight:600;background:#f6f8fb;color:#223e5d;vertical-align:middle;padding:9px 8px;border-right:1px solid #d4deea}
+.ccp-carts-page .ccp-abandoned-cart-table thead th a{color:inherit;text-decoration:none}
+.ccp-carts-page .ccp-abandoned-cart-table td,.ccp-carts-page .ccp-cart-history-table td{vertical-align:middle;padding:8px;overflow-wrap:anywhere}
+.ccp-carts-page .ccp-cart-muted{display:block;color:#687a89;font-size:11px;margin-top:4px}
+.ccp-carts-page .ccp-cart-empty{padding:35px 10px!important;color:#6a7885}
+.ccp-carts-page .ccp-cart-pagination .pagination{margin:10px 0}
+.ccp-carts-page .ccp-cart-help{color:#617285;font-size:12px;margin:10px 0 15px}
+.ccp-carts-page .ccp-cart-settings-head h3{font-size:16px;margin:0 0 7px;color:#29435d}
+.ccp-carts-page .ccp-cart-settings-head p{font-size:14px;color:#587085;margin:0 0 8px}
+.ccp-carts-page .ccp-cart-settings-form label{font-weight:600;font-size:14px;margin:0 0 5px;color:#253c56}
+.ccp-carts-page .ccp-cart-settings-form .row>div{margin-bottom:10px}
+.ccp-carts-page .ccp-cart-settings-form .help-block{font-size:14px;line-height:1.45;margin:5px 0 8px}
+.ccp-carts-page .ccp-mail-control{display:grid;grid-template-columns:minmax(190px,260px) minmax(140px,200px) minmax(0,1fr);gap:12px;align-items:center;padding:8px 10px;border:1px solid #dce8f4;border-radius:4px;background:#f8fbff;margin-bottom:6px;min-width:0}
+.ccp-carts-page .ccp-mail-control label{margin:0}
+.ccp-carts-page .ccp-mail-control .help-block{margin:0}
+.ccp-carts-page .ccp-external-fields{display:none;border:1px solid #dee8f2;background:#f8fbff;padding:13px;margin:9px 0;border-radius:5px}
+.ccp-carts-page .ccp-external-fields.is-visible{display:block}
+.ccp-carts-page .ccp-cart-settings-actions{padding:6px 0 12px}
+.ccp-carts-page .ccp-cart-danger-zone{border-top:1px solid #e5eaf0;padding:12px 0}
+.ccp-carts-page .ccp-cart-danger-zone summary{cursor:pointer;font-size:13px;color:#9c3340}
+.ccp-carts-page .ccp-cart-danger-zone p{font-size:12px;margin:10px 0}
+@media(max-width:1100px){.ccp-carts-page .ccp-cart-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:767px){.ccp-carts-page .ccp-cart-kpis{gap:7px}.ccp-carts-page .ccp-cart-kpi{padding:10px;gap:7px}.ccp-carts-page .ccp-cart-kpi strong{font-size:18px}.ccp-carts-page .ccp-cart-kpi i{font-size:16px;width:16px}.ccp-carts-page .ccp-cart-kpi span{font-size:11px}.ccp-carts-page .ccp-cart-tabs>li>a{padding:9px 8px;font-size:12px}.ccp-carts-page .ccp-cart-content{padding:9px}.ccp-carts-page .ccp-mail-control{grid-template-columns:1fr;gap:6px}.ccp-carts-page .ccp-mail-control select{margin:0}.ccp-carts-page .ccp-cart-bulk small{flex-basis:100%;text-align:left}}
+
+.ccp-carts-page .ccp-external-advanced{margin-top:9px;padding:10px 12px;border:1px solid #d9e3ee;background:#fafcfe;border-radius:4px}
+.ccp-carts-page .ccp-external-advanced>.ccp-extra-section-heading{color:#20517e}
+.ccp-carts-page .ccp-external-advanced>.ccp-extra-section-heading{margin-bottom:8px}
+.ccp-carts-page #ccp-external-detect-result{margin:8px 0 0}
+
+/* Compact storefront preview and separate checkout URL. */
+.ccp-carts-page .ccp-checkout-link-setting{margin:4px 0 10px;min-width:0}
+.ccp-carts-page .ccp-table-chooser{display:flex;gap:9px;align-items:center;margin:5px 0 12px;flex-wrap:wrap}
+.ccp-carts-page .ccp-table-chooser select{max-width:380px;flex:1 1 250px}
+
+.ccp-carts-page .ccp-settings-section-heading{font-size:15px;font-weight:700;margin:10px 0 8px;padding:0 0 5px;border-bottom:1px solid #e4eaf1;color:#254663}
+
+.ccp-carts-page #ccp-cart-checkout-mode{width:100%;max-width:none}
+.ccp-carts-page .ccp-checkout-url-box{margin:5px 0;min-width:0}
+.ccp-carts-page .ccp-data-hint{font-size:14px;padding:9px 11px;background:#fff;border-left:3px solid #0057d9;border-radius:3px;color:#385675}
+.ccp-carts-page #ccp-external-detect-result{margin:8px 0;font-size:14px}
+.ccp-carts-page .ccp-cart-history-table{table-layout:fixed;min-width:800px}
+.ccp-carts-page .ccp-cart-history-table th:nth-child(1){width:17%}
+.ccp-carts-page .ccp-cart-history-table th:nth-child(2){width:22%}
+.ccp-carts-page .ccp-cart-history-table th:nth-child(3){width:12%}
+.ccp-carts-page .ccp-cart-history-table th:nth-child(4){width:12%}
+.ccp-carts-page .ccp-cart-history-table th:nth-child(5){width:8%}
+.ccp-carts-page .ccp-cart-history-table th:nth-child(6){width:29%}
+
+/* Cart dashboard: dark theme and readable medium-screen columns. */
+html.ccp-admin-dark .ccp-carts-page .ccp-cart-kpi,
+html.ccp-admin-dark .ccp-carts-page .ccp-cart-content{background:#202b39;border-color:#36485f}
+html.ccp-admin-dark .ccp-carts-page .ccp-cart-kpi span,
+html.ccp-admin-dark .ccp-carts-page .ccp-cart-brief,
+html.ccp-admin-dark .ccp-carts-page .ccp-cart-muted{color:#b4c4d7}
+html.ccp-admin-dark .ccp-carts-page .ccp-cart-kpi strong,
+html.ccp-admin-dark .ccp-carts-page .ccp-cart-settings-head h3,
+html.ccp-admin-dark .ccp-carts-page .ccp-cart-settings-form label{color:#e5edf8}
+html.ccp-admin-dark .ccp-carts-page .ccp-cart-brief,
+html.ccp-admin-dark .ccp-carts-page .ccp-cart-bulk,
+html.ccp-admin-dark .ccp-carts-page .ccp-mail-control,
+html.ccp-admin-dark .ccp-carts-page .ccp-external-fields,
+html.ccp-admin-dark .ccp-carts-page .ccp-external-advanced{background:#253246;border-color:#40526b;color:#c5d5e7}
+html.ccp-admin-dark .ccp-carts-page .ccp-abandoned-cart-table thead th,
+html.ccp-admin-dark .ccp-carts-page .ccp-cart-history-table thead th{background:#263448;color:#d7e7f8;border-color:#40526b}
+html.ccp-admin-dark .ccp-carts-page .ccp-cart-tabs>li.active>a{background:#202b39;border-color:#40526b;color:#83baff}
+
+/* Single column-width definition. Photo and controls use fixed pixels; products receive all remaining room. */
+.ccp-carts-page .ccp-abandoned-cart-table{min-width:1320px;width:100%;table-layout:fixed}
+.ccp-carts-page .ccp-abandoned-cart-table col.ccp-width-select{width:36px}
+.ccp-carts-page .ccp-abandoned-cart-table col.ccp-width-customer{width:140px}
+.ccp-carts-page .ccp-abandoned-cart-table col.ccp-width-email{width:150px}
+.ccp-carts-page .ccp-abandoned-cart-table col.ccp-width-phone{width:126px}
+.ccp-carts-page .ccp-abandoned-cart-table col.ccp-width-image{width:58px}
+.ccp-carts-page .ccp-abandoned-cart-table col.ccp-width-quantity{width:72px}
+.ccp-carts-page .ccp-abandoned-cart-table col.ccp-width-total{width:108px}
+.ccp-carts-page .ccp-abandoned-cart-table col.ccp-width-activity{width:146px}
+.ccp-carts-page .ccp-abandoned-cart-table col.ccp-width-status{width:130px}
+.ccp-carts-page .ccp-abandoned-cart-table col.ccp-width-actions{width:56px}
+.ccp-carts-page .ccp-abandoned-cart-table th{vertical-align:middle}
+.ccp-carts-page .ccp-abandoned-cart-table td{padding:9px 8px;vertical-align:middle;line-height:1.45;overflow-wrap:normal;word-break:normal}
+.ccp-carts-page .ccp-cart-check{text-align:center}
+.ccp-carts-page .ccp-cart-inline{display:inline-block;margin:0}
+.ccp-carts-page .ccp-cart-row-actions{text-align:center;white-space:nowrap}
+.ccp-carts-page .ccp-cart-row-actions .btn{width:30px;height:30px;padding:5px 7px}
+.ccp-carts-page .ccp-cart-contact{overflow:hidden}
+.ccp-carts-page .ccp-cart-contact strong{display:block;font-size:12px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.ccp-carts-page .ccp-cart-phone{overflow:hidden;max-width:0}
+.ccp-carts-page .ccp-cart-phone span{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:#526c80}
+.ccp-carts-page .ccp-cart-phone-empty{color:#8b99a7}
+.ccp-carts-page td.ccp-cart-email{overflow:hidden;max-width:0}
+.ccp-carts-page .ccp-cart-email .ccp-cart-contact-email,.ccp-carts-page .ccp-cart-email .ccp-cart-contact-noemail{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;line-height:1.6;color:#526c80}
+.ccp-carts-page .ccp-cart-email .ccp-cart-contact-noemail{color:#7b8997}
+.ccp-carts-page .ccp-cart-image,.ccp-carts-page .ccp-cart-image-head{text-align:center}
+.ccp-carts-page .ccp-cart-image-row{display:flex;height:40px;justify-content:center;align-items:center;margin-bottom:4px}
+.ccp-carts-page .ccp-cart-image-row:last-child{margin-bottom:0}
+.ccp-carts-page .ccp-cart-image-row a{display:inline-flex;align-items:center;justify-content:center}
+.ccp-carts-page .ccp-product-thumb{display:block;width:38px;height:38px;object-fit:contain;background:#fff;border:1px solid #dbe3ef;border-radius:4px}
+.ccp-carts-page .ccp-product-thumb-placeholder{display:inline-flex;width:38px;height:38px;align-items:center;justify-content:center;background:#f4f7fa;border:1px solid #e0e6ed;border-radius:4px;color:#8191a2}
+.ccp-carts-page .ccp-cart-products{overflow:hidden}
+.ccp-carts-page .ccp-abandoned-product{display:flex;height:40px;min-width:0;align-items:center;gap:9px;margin-bottom:4px}
+.ccp-carts-page .ccp-abandoned-product:last-child{margin-bottom:0}
+.ccp-carts-page .ccp-abandoned-product>a{display:block;flex:1 1 auto;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ccp-carts-page .ccp-abandoned-product span{flex:0 0 auto;white-space:nowrap;color:#546679}
+.ccp-carts-page .ccp-cart-email .ccp-cart-contact-email[title],.ccp-carts-page .ccp-abandoned-product a[title]{cursor:help}
+.ccp-carts-page .ccp-checkout-preview{display:flex;align-items:center;gap:6px 12px;flex-wrap:wrap;padding:7px 10px;margin-top:6px;border:1px solid #dce8f4;border-radius:4px;background:#f8fbff;font-size:14px;min-width:0}
+.ccp-carts-page .ccp-checkout-preview-label{font-weight:600;color:#253c56;white-space:nowrap}
+.ccp-carts-page .ccp-checkout-preview a{min-width:0;max-width:100%;flex:1 1 320px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.ccp-carts-page .ccp-checkout-preview a.disabled{pointer-events:none;color:#8a9199}
+.ccp-carts-page .ccp-checkout-mode-note{flex:1 1 100%;margin:0;font-size:14px;line-height:1.3;color:#71849a}
+html.ccp-admin-dark .ccp-carts-page .ccp-checkout-preview{background:#253246;border-color:#40526b;color:#c5d5e7}
+html.ccp-admin-dark .ccp-carts-page .ccp-checkout-preview strong{color:#e5edf8}
+
+/* One advanced SQL source section; keep the default checkout settings uncluttered. */
+.ccp-carts-page .ccp-source-advanced,.ccp-carts-page .ccp-checkout-field-mapping,.ccp-carts-page .ccp-capture-diagnostics-toggle{margin:8px 0;border:1px solid #dce6f0;border-radius:4px;background:#fafcff;padding:10px 12px}
+.ccp-carts-page .ccp-source-advanced>.ccp-extra-section-heading,.ccp-carts-page .ccp-checkout-field-mapping>.ccp-extra-section-heading{font-size:15px;font-weight:600;color:#284b70;margin:0 0 8px;padding-bottom:6px;border-bottom:1px solid #e2ebf4}
+.ccp-carts-page .ccp-source-advanced .ccp-external-fields{margin:10px 0 2px}
+html.ccp-admin-dark .ccp-carts-page .ccp-source-advanced,html.ccp-admin-dark .ccp-carts-page .ccp-checkout-field-mapping,html.ccp-admin-dark .ccp-carts-page .ccp-capture-diagnostics-toggle{background:#253246;border-color:#40526b}
+html.ccp-admin-dark .ccp-carts-page .ccp-source-advanced>.ccp-extra-section-heading,html.ccp-admin-dark .ccp-carts-page .ccp-checkout-field-mapping>.ccp-extra-section-heading{color:#d2e3f6}
+
+.ccp-carts-page .ccp-checkout-field-mapping .row>div{margin-bottom:11px}
+.ccp-carts-page .ccp-checkout-field-mapping .help-block{line-height:1.5}
+
+/* Localized state explanation; does not enable contact capture. */
+.ccp-carts-page .ccp-capture-state{display:inline-block;font-size:14px;line-height:1.3;padding:2px 6px;margin:3px 0 0;border-left:2px solid #a1b4c7;background:#f5f8fc;color:#44546a;border-radius:2px}
+.ccp-carts-page .ccp-capture-state i{margin-right:6px}
+.ccp-carts-page .ccp-capture-state-on{border-left-color:#27835a;background:#f2faf6;color:#20553e}
+html.ccp-admin-dark .ccp-carts-page .ccp-capture-state{background:#28384b;color:#d6e4ef}
+
+.ccp-carts-page .ccp-cart-capture-diagnostics{margin:5px 0 6px;padding:8px;background:#f6f9fc;border:1px solid #dae6f2;border-radius:4px}
+.ccp-carts-page .ccp-cart-capture-diagnostics .help-block{margin:6px 0 0;font-size:14px}
+.ccp-carts-page .ccp-capture-diagnostics-result{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:5px 14px;margin-top:8px;font-size:14px}
+.ccp-carts-page .ccp-capture-diagnostic-line{line-height:1.5}
+.ccp-carts-page .ccp-capture-diagnostic-failed{color:#aa3434}
+html.ccp-admin-dark .ccp-carts-page .ccp-cart-capture-diagnostics{background:#253246;border-color:#40526b}
+
+/* Compact form: labels, controls, concise help; one responsive grid only. */
+.ccp-carts-page .ccp-settings-core-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0 0 8px}
+.ccp-carts-page .ccp-settings-core-field{min-width:0}
+.ccp-carts-page .ccp-settings-core-field .form-control{width:100%;max-width:100%}
+.ccp-carts-page .ccp-compact-setting-row{display:grid;grid-template-columns:minmax(190px,260px) minmax(160px,280px) minmax(0,1fr);align-items:center;gap:12px;min-width:0}
+.ccp-carts-page .ccp-compact-setting-row>label{margin:0}
+.ccp-carts-page .ccp-compact-setting-row>.form-control{min-width:0;width:100%}
+.ccp-carts-page .ccp-setting-note{font-size:14px;line-height:1.4;color:#687c90;margin:0;min-width:0}
+.ccp-carts-page .ccp-settings-reminder-list{display:flex;flex-direction:column;gap:0}
+.ccp-carts-page .ccp-mail-control>.form-control{min-width:0;width:100%;height:35px}
+.ccp-carts-page .ccp-capture-diagnostics-toggle .ccp-cart-capture-diagnostics{margin:0}
+html.ccp-admin-dark .ccp-carts-page .ccp-setting-note,
+html.ccp-admin-dark .ccp-carts-page .ccp-checkout-mode-note{color:#b3c5d6}
+@media(min-width:768px) and (max-width:1050px){
+  .ccp-carts-page .ccp-compact-setting-row,
+  .ccp-carts-page .ccp-mail-control{grid-template-columns:minmax(170px,235px) minmax(130px,185px) minmax(0,1fr);gap:9px}
+}
+@media(max-width:767px){
+  .ccp-carts-page .ccp-settings-core-grid{grid-template-columns:1fr;gap:8px}
+  .ccp-carts-page .ccp-compact-setting-row{grid-template-columns:1fr;gap:5px}
+  .ccp-carts-page .ccp-mail-control{grid-template-columns:1fr}
+  .ccp-carts-page .ccp-checkout-preview{gap:4px}
+  .ccp-carts-page .ccp-checkout-preview a{flex-basis:100%}
+}
+
+/* Standard OpenCart admin font size. All settings sections are visible. */
+.ccp-carts-page .ccp-cart-settings-form,
+.ccp-carts-page .ccp-cart-settings-form .form-control,
+.ccp-carts-page .ccp-cart-settings-form .btn,
+.ccp-carts-page .ccp-cart-settings-form .ccp-data-hint,
+.ccp-carts-page .ccp-cart-settings-form .ccp-cart-capture-diagnostics{font-size:14px}
+.ccp-carts-page .ccp-cart-settings-form .form-control{min-height:34px}
+.ccp-carts-page .ccp-cart-settings-form .ccp-capture-diagnostics-toggle{display:block}
+.ccp-carts-page .ccp-cart-settings-form .ccp-external-advanced{padding:10px 12px}
+/* Below ~1600px the fixed-width table scrolls horizontally; keep row actions (send, delete) in view. */
+.ccp-carts-page .ccp-abandoned-cart-table .ccp-cart-actions-heading,.ccp-carts-page .ccp-abandoned-cart-table .ccp-cart-row-actions{position:sticky;right:0;z-index:1;background:#fff;box-shadow:-1px 0 0 #d4deea}
+.ccp-carts-page .ccp-abandoned-cart-table thead .ccp-cart-actions-heading{background:#f6f8fb}
+.ccp-carts-page .ccp-abandoned-cart-table tbody tr:hover .ccp-cart-row-actions{background:#f5f5f5}
+html.ccp-admin-dark .ccp-carts-page .ccp-abandoned-cart-table .ccp-cart-row-actions{background:#18212b;box-shadow:-1px 0 0 #435161}
+html.ccp-admin-dark .ccp-carts-page .ccp-abandoned-cart-table thead .ccp-cart-actions-heading{background:#263448}

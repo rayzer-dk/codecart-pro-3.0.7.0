@@ -1,0 +1,14 @@
+{
+  "name": "codecart-qa",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Isolated browser QA for CodeCart PRO 3.7.0 modernization",
+  "scripts": {
+    "test:e2e": "playwright test --config=playwright.config.js",
+    "test:e2e:list": "playwright test --config=playwright.config.js --list",
+    "test:e2e:chromium": "playwright test --config=playwright.config.js --project=chromium-desktop --project=chromium-mobile"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.1"
+  }
+}

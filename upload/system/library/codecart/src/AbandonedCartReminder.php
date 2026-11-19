@@ -1,0 +1,343 @@
+<?php
+namespace CodeCart\Core;
+
+/**
+ * Consent-based recovery mailer. Only the cart owner's explicit, session-specific
+ * consent permits a reminder. A persistent ledger prevents duplicate sends.
+ */
+final class AbandonedCartReminder {
+    private const HISTORY_TABLE = 'codecart_cart_reminder';
+
+    private $registry;
+    private $db;
+    private $config;
+    private ?bool $historyTableExists = null;
+
+    public function __construct($registry) {
+        $this->registry = $registry;
+        $this->db = $registry->get('db');
+        $this->config = $registry->get('config');
+    }
+
+    private function table(): string {
+        return '`' . DB_PREFIX . self::HISTORY_TABLE . '`';
+    }
+
+    private function hasHistoryTable(): bool {
+        if ($this->historyTableExists === null) {
+            $result = $this->db->query("SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='" . $this->db->escape(DB_PREFIX . self::HISTORY_TABLE) . "' LIMIT 1");
+            $this->historyTableExists = $result->num_rows > 0;
+        }
+        return $this->historyTableExists;
+    }
+
+    public function install(): void {
+        $this->db->query("CREATE TABLE IF NOT EXISTS " . $this->table() . " (
+            `reminder_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+            `cart_key` CHAR(64) NOT NULL,
+            `customer_id` INT UNSIGNED NOT NULL,
+            `email` VARCHAR(254) NOT NULL,
+            `origin` VARCHAR(12) NOT NULL,
+            `status` VARCHAR(16) NOT NULL,
+            `attempts` TINYINT UNSIGNED NOT NULL DEFAULT 1,
+            `error_code` VARCHAR(120) NOT NULL DEFAULT '',
+            `date_added` DATETIME NOT NULL,
+            `date_sent` DATETIME NULL,
+            PRIMARY KEY (`reminder_id`), UNIQUE KEY `cart_key` (`cart_key`),
+            KEY `customer_date` (`customer_id`,`date_added`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        $this->historyTableExists = true;
+    }
+
+    private function active(): bool {
+        return (bool)$this->config->get('codecart_abandoned_cart_status')
+            && (string)$this->config->get('codecart_abandoned_cart_source') !== 'external';
+    }
+
+    public function fingerprint(array $cart): string {
+        return hash('sha256', (int)($cart['store_id'] ?? 0) . '|' . (int)$cart['customer_id'] . '|' . (string)$cart['session_id'] . '|' .
+            (string)$cart['last_activity'] . '|' . (int)$cart['quantity'] . '|' . (int)$cart['max_cart_id']);
+    }
+
+    private function idle(): int {
+        return max(1, min(10080, (int)($this->config->get('codecart_abandoned_cart_idle_minutes') ?? 5)));
+    }
+
+    /** Wait for the configured reminder interval, never send before the cart is abandoned. */
+    private function sendAfter(): int {
+        $delay = max(5, min(10080, (int)($this->config->get('codecart_abandoned_cart_reminder_delay_minutes') ?? 60)));
+        return max($this->idle(), $delay);
+    }
+
+    public function getCart(int $customerId, string $sessionId): array {
+        if (!$this->active() || $customerId < 0 || $sessionId === '') { return array(); }
+        $idle = $this->sendAfter();
+        $days = max(1, min(30, (int)$this->config->get('codecart_abandoned_cart_days') ?: 7));
+        if ($customerId === 0) {
+            if (!(bool)$this->config->get('codecart_abandoned_cart_guest_capture')) { return array(); }
+            $this->ensureGuestSchema();
+            $sql = "SELECT c.customer_id,c.session_id,MAX(c.date_added) AS last_activity,
+                    MAX(c.cart_id) AS max_cart_id,SUM(c.quantity) AS quantity,
+                    MAX(gc.firstname) AS firstname,MAX(gc.email) AS email,MAX(gc.consent) AS newsletter, MAX(gc.store_id) AS store_id, MAX(gc.language_id) AS language_id
+                FROM `" . DB_PREFIX . "cart` c
+                INNER JOIN `" . DB_PREFIX . "codecart_cart_guest_contact` gc ON gc.session_id=c.session_id AND gc.consent=1 AND gc.recovered_at IS NULL AND gc.date_modified>=DATE_SUB(NOW(),INTERVAL " . $days . " DAY)
+                WHERE c.api_id=0 AND c.customer_id=0 AND c.session_id='" . $this->db->escape($sessionId) . "'
+                    AND c.date_added>=DATE_SUB(NOW(),INTERVAL " . $days . " DAY)
+                GROUP BY c.customer_id,c.session_id
+                HAVING MAX(c.date_added)<DATE_SUB(NOW(),INTERVAL " . $idle . " MINUTE) AND SUM(c.quantity)>0 AND COUNT(DISTINCT gc.store_id)=1 LIMIT 1";
+            $result = $this->db->query($sql);
+            return $result->num_rows ? $result->row : array();
+        }
+        $sql = "SELECT c.customer_id,c.session_id,MAX(c.date_added) AS last_activity,
+                    MAX(c.cart_id) AS max_cart_id,SUM(c.quantity) AS quantity,
+                    MAX(cu.firstname) AS firstname,MAX(cu.email) AS email, MAX(rc.consent) AS newsletter, MAX(rc.store_id) AS store_id, MAX(cu.language_id) AS language_id
+                FROM `" . DB_PREFIX . "cart` c
+                INNER JOIN `" . DB_PREFIX . "customer` cu ON cu.customer_id=c.customer_id
+                INNER JOIN `" . DB_PREFIX . "codecart_cart_registered_consent` rc ON rc.customer_id=c.customer_id AND rc.session_id=c.session_id AND rc.consent=1 AND rc.date_modified>=DATE_SUB(NOW(),INTERVAL " . $days . " DAY)
+                WHERE c.api_id=0 AND c.customer_id='" . $customerId . "'
+                    AND c.session_id='" . $this->db->escape($sessionId) . "'
+                    AND c.date_added >= DATE_SUB(NOW(),INTERVAL " . $days . " DAY)
+                GROUP BY c.customer_id,c.session_id
+                HAVING MAX(c.date_added) < DATE_SUB(NOW(),INTERVAL " . $idle . " MINUTE) AND SUM(c.quantity)>0 AND COUNT(DISTINCT rc.store_id)=1
+                LIMIT 1";
+        try { $result = $this->db->query($sql); }
+        catch (\Throwable $e) { return array(); }
+        return $result->num_rows ? $result->row : array();
+    }
+
+    /** Guest contact columns added after the first release (language) must exist before reading them. */
+    private function ensureGuestSchema(): void {
+        static $checked = false;
+        if (!$checked) {
+            (new GuestCartContact($this->registry))->install();
+            $checked = true;
+        }
+    }
+
+    /**
+     * Language of the reminder: the one the shopper used (guest consent or customer
+     * account), if still active; otherwise the store default. Also returns that
+     * language's URL folder so the link opens the shop in the same language.
+     */
+    private function reminderLanguage(array $cart, string $default): array {
+        $prefix = '';
+        $languageId = (int)($cart['language_id'] ?? 0);
+        if ($languageId > 0) {
+            $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "language` WHERE language_id='" . $languageId . "' AND status='1' LIMIT 1");
+            if ($query->num_rows) {
+                $default = (string)$query->row['code'];
+                $prefix = preg_match('/^[a-z0-9-]{1,32}$/i', (string)($query->row['url_prefix'] ?? '')) ? (string)$query->row['url_prefix'] : '';
+            }
+        }
+        return array(strtolower(str_replace('_', '-', $default)), $prefix);
+    }
+
+    /** Plain-text reminder; guests get a one-time restore link, customers a sign-in link. */
+    private function message(string $locale, string $name, string $store, string $link, bool $guest): array {
+        $directory = dirname(DIR_SYSTEM) . '/catalog/language/';
+        $file = $directory . (preg_match('/^[a-z0-9-]{2,32}$/', $locale) ? $locale : 'en-gb') . '/mail/abandoned_cart.php';
+        if (!is_file($file) && strpos($locale, 'da') === 0) {
+            return array('Din uafsluttede bestilling hos ' . $store, 'Hej' . ($name !== '' ? ' ' . $name : '') . ",\n\nDer ligger stadig varer i din indkøbskurv. "
+                . ($guest ? 'Åbn linket for at hente dem tilbage i kurven og fuldføre bestillingen: ' : 'Log ind her for at fuldføre bestillingen: ')
+                . $link . ($guest ? "\nLinket kan kun bruges én gang." : '') . "\n\nHvis du allerede har bestilt, kan du se bort fra denne mail.\n\n" . $store);
+        }
+        $_ = array();
+        require $directory . 'en-gb/mail/abandoned_cart.php';
+        if (is_file($file)) {
+            require $file;
+        }
+        $greeting = $name !== '' ? sprintf($_['text_greeting_name'], $name) : $_['text_greeting'];
+        return array(sprintf($_['text_subject'], $store), $greeting . "\n\n" . $_['text_cart'] . ' '
+            . ($guest ? $_['text_guest'] : $_['text_customer'])
+            . $link . ($guest ? "\n" . $_['text_once'] : '') . "\n\n" . $_['text_ignore'] . "\n\n" . $store);
+    }
+
+    public function history(array $carts): array {
+        if (!$carts) { return array(); }
+        $keys = array();
+        foreach ($carts as $cart) {
+            if (isset($cart['cart_key']) && preg_match('/^[a-f0-9]{64}$/', (string)$cart['cart_key'])) {
+                $keys[] = "'" . $cart['cart_key'] . "'";
+            }
+        }
+        if (!$keys || !$this->hasHistoryTable()) { return array(); }
+        $result = $this->db->query("SELECT cart_key,status,date_sent,date_added,attempts,TIMESTAMPDIFF(SECOND,date_added,NOW()) AS age_seconds FROM " . $this->table() . " WHERE cart_key IN (" . implode(',', $keys) . ")");
+        $out = array();
+        foreach ($result->rows as $row) { $out[$row['cart_key']] = $row; }
+        return $out;
+    }
+
+    public function summary(): array {
+        $out = array('sent'=>0,'failed'=>0,'sending'=>0,'total'=>0);
+        if (!$this->hasHistoryTable()) { return $out; }
+        $q = $this->db->query("SELECT status,COUNT(*) AS total FROM " . $this->table() . " WHERE date_added>=DATE_SUB(NOW(),INTERVAL 7 DAY) GROUP BY status");
+        foreach ($q->rows as $row) {
+            if (isset($out[$row['status']])) { $out[$row['status']] = (int)$row['total']; }
+            $out['total'] += (int)$row['total'];
+        }
+        return $out;
+    }
+
+    public function historyTotal(string $status = '', string $email = ''): int {
+        if (!$this->hasHistoryTable()) { return 0; }
+        return (int)($this->db->query("SELECT COUNT(*) AS total FROM " . $this->table() . $this->historyWhere($status,$email))->row['total'] ?? 0);
+    }
+
+    private function historyWhere(string $status, string $email): string {
+        $where = array();
+        if (in_array($status, array('sent','failed','sending'),true)) { $where[] = "status='" . $status . "'"; }
+        if ($email !== '') { $where[] = "email LIKE '%" . $this->db->escape(substr($email,0,80)) . "%'"; }
+        return $where ? ' WHERE ' . implode(' AND ',$where) : '';
+    }
+
+    public function recentHistory(int $limit = 25, int $start = 0, string $status = '', string $email = ''): array {
+        if (!$this->hasHistoryTable()) { return array(); }
+        $limit = max(1,min(100,$limit));
+        $start = max(0,$start);
+        return $this->db->query("SELECT reminder_id,customer_id,email,origin,status,attempts,error_code,date_added,date_sent FROM " . $this->table() . $this->historyWhere($status,$email) . " ORDER BY reminder_id DESC LIMIT " . $start . ',' . $limit)->rows;
+    }
+
+    public function send(int $customerId, string $sessionId, string $origin = 'manual'): array {
+        if (!$this->active()) { return array('success'=>false,'message'=>'Cart recovery is disabled or source is read-only.'); }
+        $cart = $this->getCart($customerId, $sessionId);
+        if (!$cart) { return array('success'=>false,'message'=>'Cart is no longer abandoned.'); }
+        $email = trim((string)$cart['email']);
+        if (!(int)$cart['newsletter'] || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return array('success'=>false,'message'=>'Explicit cart-reminder consent or valid email is missing.');
+        }
+        // Check additional suppression status when marketing suppression table exists.
+        try {
+            $suppressed = $this->db->query("SELECT email FROM `" . DB_PREFIX . "mail_suppression` WHERE LOWER(email)='" . $this->db->escape(strtolower($email)) . "' LIMIT 1");
+            if ($suppressed->num_rows) { return array('success'=>false,'message'=>'Customer has unsubscribed.'); }
+        } catch (\Throwable $ignored) {
+            // The optional newsletter table is not installed on all stores.
+        }
+        $key = $this->fingerprint($cart);
+        // Once per customer per day, even when their cart contents change.
+        $recent = $this->db->query("SELECT reminder_id FROM " . $this->table() . " WHERE " . ($customerId > 0 ? "customer_id='" . $customerId . "'" : "LOWER(email)='" . $this->db->escape(strtolower($email)) . "'") . " AND status IN ('sending','sent') AND date_added>DATE_SUB(NOW(),INTERVAL 1 DAY) LIMIT 1");
+        if ($recent->num_rows) { return array('success'=>false,'message'=>'Reminder already sent or in progress in the last 24 hours.'); }
+        $previous = $this->db->query("SELECT status,attempts,date_added,TIMESTAMPDIFF(SECOND,date_added,NOW()) AS age_seconds FROM " . $this->table() . " WHERE cart_key='" . $key . "' LIMIT 1");
+        if ($previous->num_rows) {
+            $old = $previous->row;
+            if ($origin !== 'manual' || (string)$old['status'] !== 'failed'
+                || (int)$old['attempts'] >= 3 || (int)$old['age_seconds'] < 600) {
+                return array('success'=>false,'message'=>'This cart has already been processed.');
+            }
+            $this->db->query("UPDATE " . $this->table() . " SET status='sending', attempts=attempts+1,origin='manual',date_added=NOW(),error_code='' WHERE cart_key='" . $key . "' AND status='failed' AND attempts<3");
+        } else {
+            $this->db->query("INSERT IGNORE INTO " . $this->table() . " SET cart_key='" . $key . "', customer_id='" . $customerId . "', email='" . $this->db->escape($email) . "', origin='" . ($origin === 'auto' ? 'auto' : 'manual') . "', status='sending',date_added=NOW()");
+        }
+        if (!$this->db->countAffected()) { return array('success'=>false,'message'=>'This cart has already been processed.'); }
+
+        $success = false;
+        $error = 'transport_failed';
+        try {
+            // A cart belongs to the storefront where consent was given, not necessarily
+            // the default store. Do not guess an origin from a customer's account store.
+            $storeId = isset($cart['store_id']) ? (int)$cart['store_id'] : -1;
+            if ($storeId < 0) { throw new \RuntimeException('Cart origin store is unknown.'); }
+            $store = array();
+            if ($storeId > 0) {
+                $origin = $this->db->query("SELECT store_id,name,url,`ssl` FROM `" . DB_PREFIX . "store` WHERE store_id='" . $storeId . "' LIMIT 1");
+                if (!$origin->num_rows) { throw new \RuntimeException('Origin storefront no longer exists.'); }
+                $store = $origin->row;
+            }
+            $settings = array();
+            $rows = $this->db->query("SELECT store_id,`key`,`value` FROM `" . DB_PREFIX . "setting` WHERE store_id IN (0," . $storeId . ") AND `key` IN ('config_name','config_email','config_language','config_ssl','config_url','config_mail_engine','config_mail_parameter','config_mail_smtp_hostname','config_mail_smtp_username','config_mail_smtp_password','config_mail_smtp_port','config_mail_smtp_timeout') ORDER BY store_id ASC");
+            foreach ($rows->rows as $row) { $settings[$row['key']] = $row['value']; }
+            if ($storeId > 0) {
+                $settings['config_name'] = (string)$store['name'];
+                $settings['config_ssl'] = (string)($store['ssl'] ?: $store['url']);
+            }
+            $setting = function($name, $default='') use ($settings, $storeId) {
+                return array_key_exists($name,$settings) ? $settings[$name] : ($storeId === 0 ? ($this->config->get($name) ?: $default) : $default);
+            };
+            $from = (string)$setting('config_email');
+            $base = (string)$setting('config_ssl');
+            if ($base === '') { $base = (string)$setting('config_url'); }
+            if (!filter_var($from, FILTER_VALIDATE_EMAIL) || !filter_var($base, FILTER_VALIDATE_URL)) {
+                throw new \RuntimeException('Store sender email or URL is missing.');
+            }
+            $store = (string)$setting('config_name', 'Store');
+            $name = trim((string)$cart['firstname']);
+            list($locale, $languagePrefix) = $this->reminderLanguage($cart, (string)$setting('config_language', 'en-gb'));
+            $base = rtrim($base, '/') . ($languagePrefix !== '' ? '/' . rawurlencode($languagePrefix) : '');
+            $link = $base . '/index.php?route=account/login';
+            if ($customerId === 0) {
+                $token = (new GuestCartContact($this->registry))->issueToken($sessionId, $storeId);
+                if ($token === '') { throw new \RuntimeException('Guest cart recovery token not available.'); }
+                // URL stays on the originating storefront and contains a single-use random token.
+                $link = $base . '/index.php?route=extension/module/codecart_cart_recover&token=' . $token;
+            }
+            list($subject, $body) = $this->message($locale, $name, $store, $link, $customerId === 0);
+            $mail = new \Mail((string)$setting('config_mail_engine','mail'));
+            $mail->parameter = $setting('config_mail_parameter');
+            $mail->smtp_hostname = $setting('config_mail_smtp_hostname');
+            $mail->smtp_username = $setting('config_mail_smtp_username');
+            $mail->smtp_password = html_entity_decode((string)$setting('config_mail_smtp_password'), ENT_QUOTES, 'UTF-8');
+            $mail->smtp_port = (int)$setting('config_mail_smtp_port',25);
+            $mail->smtp_timeout = (int)$setting('config_mail_smtp_timeout',5);
+            $mail->setTo($email);
+            $mail->setFrom($from);
+            $mail->setSender($store);
+            $mail->setSubject($subject);
+            $mail->setText($body);
+            $mail->setHtml('<div style="font-family:Arial,sans-serif;line-height:1.5">' . nl2br(htmlspecialchars($body, ENT_QUOTES, 'UTF-8')) . '</div>');
+            $success = MailDelivery::sendNow($this->registry, $mail, 'abandoned-cart:' . substr($key,0,20));
+        } catch (\Throwable $e) {
+            $error = substr(get_class($e),0,120);
+            $logger = $this->registry->get('log');
+            if ($logger) { $logger->write('Cart reminder delivery error: ' . $e->getMessage()); }
+        }
+        $this->db->query("UPDATE " . $this->table() . " SET status='" . ($success ? 'sent' : 'failed') . "', error_code='" . ($success ? '' : $this->db->escape($error)) . "', date_sent=" . ($success ? 'NOW()' : 'NULL') . " WHERE cart_key='" . $key . "' AND status='sending'");
+        return array('success'=>$success, 'message'=>$success ? 'Reminder accepted by the mail transport.' : 'Mail transport failed; check the error log.');
+    }
+
+    public function runBatch(int $limit = 10): array {
+        if (!$this->active() || !(int)$this->config->get('codecart_abandoned_cart_mail_auto')) {
+            return array('success'=>true,'message'=>'Abandoned-cart reminders disabled.');
+        }
+        $limit = max(1,min(20,$limit));
+        $idle = $this->sendAfter();
+        $days = max(1,min(30,(int)$this->config->get('codecart_abandoned_cart_days') ?: 7));
+        $registeredSql = "SELECT c.customer_id,c.session_id FROM `" . DB_PREFIX . "cart` c INNER JOIN `" . DB_PREFIX . "customer` cu ON cu.customer_id=c.customer_id INNER JOIN `" . DB_PREFIX . "codecart_cart_registered_consent` rc ON rc.customer_id=c.customer_id AND rc.session_id=c.session_id AND rc.consent=1 AND rc.date_modified>=DATE_SUB(NOW(),INTERVAL " . $days . " DAY) WHERE c.api_id=0 AND c.customer_id>0 AND cu.email<>'' AND c.date_added>=DATE_SUB(NOW(),INTERVAL " . $days . " DAY) GROUP BY c.customer_id,c.session_id HAVING MAX(c.date_added)<DATE_SUB(NOW(),INTERVAL " . $idle . " MINUTE) AND COUNT(DISTINCT rc.store_id)=1 ORDER BY MAX(c.date_added) DESC LIMIT " . ($limit * 4);
+        try {
+            $results = $this->db->query($registeredSql);
+        } catch (\Throwable $e) {
+            // A partially upgraded store may be missing the new consent table.
+            // Create only its empty schema, then retry. Never manufacture consent.
+            $logger = $this->registry->get('log');
+            if ($logger) { $logger->write('Cart reminder registered consent query failed: ' . $e->getMessage()); }
+            $missingConsentTable = DatabaseError::isMissingTable($e);
+            if (!$missingConsentTable) {
+                return array('success'=>false,'message'=>'Cart reminder consent query failed; check the error log.','sent'=>0,'failed'=>1,'skipped'=>0);
+            }
+            try {
+                (new RegisteredCartConsent($this->registry))->install();
+                $results = $this->db->query($registeredSql);
+            } catch (\Throwable $repairError) {
+                if ($logger) { $logger->write('Cart reminder consent schema repair failed: ' . $repairError->getMessage()); }
+                return array('success'=>false,'message'=>'Cart reminder consent storage is unavailable; check migration and database permissions.','sent'=>0,'failed'=>1,'skipped'=>0);
+            }
+        }
+        if ($this->config->get('codecart_abandoned_cart_guest_capture')) {
+            try {
+                $guest = $this->db->query("SELECT c.customer_id,c.session_id FROM `" . DB_PREFIX . "cart` c INNER JOIN `" . DB_PREFIX . "codecart_cart_guest_contact` gc ON gc.session_id=c.session_id AND gc.consent=1 AND gc.recovered_at IS NULL WHERE c.api_id=0 AND c.customer_id=0 AND gc.date_modified>=DATE_SUB(NOW(),INTERVAL " . $days . " DAY) AND c.date_added>=DATE_SUB(NOW(),INTERVAL " . $days . " DAY) GROUP BY c.customer_id,c.session_id HAVING MAX(c.date_added)<DATE_SUB(NOW(),INTERVAL " . $idle . " MINUTE) AND COUNT(DISTINCT gc.store_id)=1 ORDER BY MAX(c.date_added) DESC LIMIT " . ($limit * 2));
+                $results->rows = array_merge($results->rows, $guest->rows);
+            } catch (\Throwable $e) {
+                $logger = $this->registry->get('log');
+                if ($logger) { $logger->write('Cart reminder guest consent query failed: ' . $e->getMessage()); }
+                return array('success'=>false,'message'=>'Cart reminder guest consent query failed; check the error log.','sent'=>0,'failed'=>1,'skipped'=>0);
+            }
+        }
+        $sent = 0; $failed=0; $skipped=0;
+        foreach ($results->rows as $row) {
+            if ($sent+$failed >= $limit) { break; }
+            $out = $this->send((int)$row['customer_id'],(string)$row['session_id'],'auto');
+            if ($out['success']) { $sent++; }
+            elseif (strpos((string)$out['message'], 'already') !== false || strpos((string)$out['message'], 'progress') !== false || strpos((string)$out['message'], 'processed') !== false) { $skipped++; }
+            else { $failed++; }
+        }
+        return array('success'=>$failed===0,'message'=>'Cart reminders: sent '.$sent.', errors '.$failed.', skipped '.$skipped,'sent'=>$sent,'failed'=>$failed,'skipped'=>$skipped);
+    }
+}

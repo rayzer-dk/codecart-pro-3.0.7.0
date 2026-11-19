@@ -1,0 +1,274 @@
+<?php
+declare(strict_types=1);
+
+$root = dirname(__DIR__);
+$errors = [];
+
+function fail(array &$errors, string $message): void {
+    $errors[] = $message;
+    fwrite(STDERR, "[FAIL] " . $message . PHP_EOL);
+}
+
+function pass(string $message): void {
+    fwrite(STDOUT, "[PASS] " . $message . PHP_EOL);
+}
+
+$required = [
+    'upload/index.php',
+    'upload/admin/index.php',
+    'upload/system/startup.php',
+    'upload/system/storage/vendor/autoload.php',
+    'composer.json',
+    'composer.lock',
+];
+
+foreach ($required as $path) {
+    if (!is_file($root . '/' . $path)) {
+        fail($errors, 'Missing required file: ' . $path);
+    }
+}
+if (!$errors) {
+    pass('Required release files are present');
+}
+
+$iterator = new RecursiveIteratorIterator(
+    new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS)
+);
+
+$phpFiles = [];
+$jsonFiles = [];
+$xmlFiles = [];
+$bomFiles = [];
+$debugHits = [];
+
+foreach ($iterator as $file) {
+    if (!$file->isFile()) {
+        continue;
+    }
+
+    $path = $file->getPathname();
+    $relative = str_replace('\\', '/', substr($path, strlen($root) + 1));
+
+    if (str_starts_with($relative, '.git/') ||
+        str_starts_with($relative, 'upload/system/storage/vendor/') ||
+        str_starts_with($relative, 'artifacts/') ||
+        str_starts_with($relative, 'bonus-source/') ||
+        str_starts_with($relative, 'vendor/') ||
+        str_starts_with($relative, 'node_modules/') ||
+        str_starts_with($relative, 'tools/quality/vendor/') ||
+        str_starts_with($relative, 'releases/') ||
+        str_starts_with($relative, 'playwright-report/') ||
+        str_starts_with($relative, 'test-results/')) {
+        continue;
+    }
+
+    $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+
+    if ($ext === 'php') {
+        $phpFiles[] = $path;
+    } elseif ($ext === 'json') {
+        $jsonFiles[] = $path;
+    } elseif ($ext === 'xml') {
+        $xmlFiles[] = $path;
+    }
+
+    $fh = @fopen($path, 'rb');
+    if ($fh) {
+        $prefix = fread($fh, 3);
+        fclose($fh);
+        if ($prefix === "\xEF\xBB\xBF") {
+            $bomFiles[] = $relative;
+        }
+    }
+
+    if (in_array($ext, ['php', 'twig', 'js'], true)) {
+        $content = @file_get_contents($path);
+
+        if ($content !== false) {
+            if (preg_match('/\bvar_dump\s*\(/', $content)) {
+                $debugHits[] = $relative;
+                continue;
+            }
+
+            // print_r($value, true) is used intentionally as a formatter by
+            // logging code. Flag only calls that can write directly to output.
+            if ($ext === 'php') {
+                foreach (preg_split('/\R/', $content) as $line) {
+                    if (preg_match('/\bprint_r\s*\(/', $line) &&
+                        !preg_match('/\bprint_r\s*\(.*?,\s*true\s*\)/i', $line)) {
+                        $debugHits[] = $relative;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+}
+
+$beforePhp = count($errors);
+foreach ($phpFiles as $path) {
+    $cmd = escapeshellarg(PHP_BINARY) . ' -l ' . escapeshellarg($path) . ' 2>&1';
+    exec($cmd, $out, $code);
+    if ($code !== 0) {
+        fail($errors, 'PHP lint failed: ' . str_replace($root . '/', '', $path) . ' :: ' . implode(' ', $out));
+    }
+    unset($out);
+}
+if (count($errors) === $beforePhp) {
+    pass('PHP lint: ' . count($phpFiles) . ' first-party files');
+}
+
+$beforeJson = count($errors);
+foreach ($jsonFiles as $path) {
+    json_decode((string)file_get_contents($path), true);
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        fail($errors, 'Invalid JSON: ' . str_replace($root . '/', '', $path) . ' :: ' . json_last_error_msg());
+    }
+}
+if (count($errors) === $beforeJson) {
+    pass('JSON validation: ' . count($jsonFiles) . ' files');
+}
+
+$beforeXml = count($errors);
+if (class_exists('DOMDocument')) {
+    libxml_use_internal_errors(true);
+    foreach ($xmlFiles as $path) {
+        $dom = new DOMDocument();
+        if (!$dom->load($path, LIBXML_NONET)) {
+            fail($errors, 'Invalid XML: ' . str_replace($root . '/', '', $path));
+        }
+        libxml_clear_errors();
+    }
+    if (count($errors) === $beforeXml) {
+        pass('XML validation: ' . count($xmlFiles) . ' files');
+    }
+} else {
+    fail($errors, 'XML validation requires the PHP DOM extension');
+}
+
+if ($bomFiles) {
+    fail($errors, 'UTF-8 BOM detected: ' . implode(', ', $bomFiles));
+} else {
+    pass('UTF-8 BOM: none');
+}
+
+if ($debugHits) {
+    fail($errors, 'Debug calls detected: ' . implode(', ', array_unique($debugHits)));
+} else {
+    pass('Debug-call sweep: clean');
+}
+
+// Generated first-party variants must match the sources shipped in the same package.
+$beforeAssets = count($errors);
+foreach (array(
+    'catalog/view/theme/codecart/stylesheet/stylesheet.css',
+    'catalog/view/theme/default/stylesheet/stylesheet.css',
+    'admin/view/stylesheet/stylesheet.css',
+    'admin/view/javascript/common.js',
+    'catalog/view/javascript/common.js'
+) as $relative) {
+    $source = $root . '/upload/' . $relative;
+    $minified = preg_replace('/\.(css|js)$/', '.min.$1', $source);
+    $head = is_file($minified) ? (string)file_get_contents($minified, false, null, 0, 256) : '';
+    $sourceName = preg_quote(basename($source), '/');
+    if (!preg_match('/source ' . $sourceName . ' sha256:([a-f0-9]{64})/', $head, $match)
+        || !is_file($source) || !hash_equals($match[1], hash_file('sha256', $source))) {
+        fail($errors, 'Minified asset is missing or stale: ' . $relative);
+    }
+}
+if (count($errors) === $beforeAssets) {
+    pass('Minified first-party assets are in sync with source');
+}
+
+$gates = [
+    ['check_language_packs.php'],
+    ['check_uk_locale.php'],
+    ['check_unishop2_compat.php'],
+    ['qa_unishop2_ocmod.php'],
+    ['i18n-check.php'],
+    ['i18n-coverage-check.php'],
+    ['integrity-manifest-check.php'],
+    ['qa_schema_upgrade.php'],
+    ['extension-sort-check.php'],
+    ['checker-regression-check.php'],
+    ['notification-check.php'],
+    ['notification-url-check.php'],
+    ['seo-language-url-check.php'],
+    ['seo-language-startup-check.php'],
+    ['qa_lost_urls.php'],
+    ['qa_error_pages.php'],
+    ['qa_session_rotation.php'],
+    ['check_paypal_financial_guards.php'],
+    ['qa_auth_defensive.php', 'html'],
+    ['qa_auth_defensive.php', 'totp'],
+    ['qa_auth_defensive.php', 'totp-pipeline'],
+    ['qa_auth_defensive.php', 'cart'],
+    ['qa_auth_defensive.php', 'device-admin'],
+    ['qa_auth_defensive.php', 'device-catalog'],
+    ['qa_commerce_defensive.php', 'stock'],
+    ['qa_commerce_defensive.php', 'background'],
+    ['qa_commerce_defensive.php', 'image'],
+    ['qa_image_modes.php'],
+    ['qa_product_image_events.php'],
+    ['qa_commerce_defensive.php', 'category-admin'],
+    ['qa_commerce_defensive.php', 'category-catalog'],
+    ['qa_commerce_defensive.php', 'category-seo'],
+    ['qa_commerce_defensive.php', 'category-internal'],
+    ['qa_commerce_defensive.php', 'category-feed'],
+    ['qa_commerce_defensive.php', 'bonus'],
+    ['qa_cron_boundary.php'],
+    ['qa_rich_html_persistence.php', 'product'],
+    ['qa_rich_html_persistence.php', 'category'],
+    ['qa_rich_html_persistence.php', 'information'],
+    ['qa_rich_html_persistence.php', 'article'],
+    ['qa_rich_html_persistence.php', 'form'],
+    ['qa_rich_html_persistence.php', 'theme-default'],
+    ['qa_rich_html_persistence.php', 'theme-codecart'],
+    ['qa_notification_diagnostics.php'],
+    ['tests/admin_footer_runtime_smoke.php'],
+    ['tests/theme_layout_compat_smoke.php'],
+    ['tests/ocmod_legacy_anchor_smoke.php'],
+    ['tests/cart_external_schema_smoke.php'],
+    ['tests/cart_reminder_consent_multistore_smoke.php'],
+    ['tests/cart_source_discovery_smoke.php'],
+    ['tests/cart_workflow_smoke.php'],
+    ['tests/checkout_contact_bridge_smoke.php'],
+    ['tests/checkout_contact_data_mock.php'],
+    ['tests/codecart_external_http_smoke.php'],
+    ['tests/scheduler_cart_admin_ui_smoke.php'],
+    ['tests/scheduler_crud_smoke.php'],
+    ['tests/two_factor_template_smoke.php'],
+    ['tests/heartbeat_policy_smoke.php'],
+    ['tests/sql_backup_smoke.php'],
+    ['tests/admin_audit_smoke.php'],
+    ['tests/newsletter_brand_smoke.php'],
+    ['tests/smart_search_smoke.php'],
+    ['tests/filemanager_usage_smoke.php'],
+    ['tests/admin_permission_smoke.php'],
+    ['tests/audit_fixes_smoke.php'],
+    ['tests/transaction_smoke.php'],
+    ['tests/confirmation_pages_smoke.php'],
+    ['tests/scheduler_runtime_smoke.php'],
+];
+foreach ($gates as $arguments) {
+    $gate = implode(' ', $arguments);
+    $path = $root . '/' . (strpos($arguments[0], '/') === false ? 'tools/' : '') . $arguments[0];
+    if (!is_file($path)) {
+        fail($errors, 'Missing release gate: ' . $gate);
+        continue;
+    }
+    $command = array_merge([PHP_BINARY, $path], array_slice($arguments, 1));
+    passthru(implode(' ', array_map('escapeshellarg', $command)), $code);
+    if ($code !== 0) {
+        fail($errors, 'Release gate failed: ' . $gate . ' (exit ' . $code . ')');
+    } else {
+        pass('Release gate: ' . $gate);
+    }
+}
+
+if ($errors) {
+    fwrite(STDERR, PHP_EOL . 'RELEASE CHECK FAILED: ' . count($errors) . ' issue(s).' . PHP_EOL);
+    exit(1);
+}
+
+fwrite(STDOUT, PHP_EOL . 'RELEASE CHECK PASSED.' . PHP_EOL);

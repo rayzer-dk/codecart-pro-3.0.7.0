@@ -1,0 +1,8 @@
+/* CodeCart PRO Air Datepicker experimental theme v0.1.0 */
+:root{--adp-font-family:inherit;--adp-font-size:14px;--adp-width:300px;--adp-border-radius:10px;--adp-color:#344054;--adp-background-color:#fff;--adp-border-color:#d0d5dd;--adp-cell-border-radius:5px;--adp-color-current-date:var(--ccp-admin-accent,var(--ccp-store-accent,#0b6fd3));--adp-cell-background-color-selected:var(--ccp-admin-accent,var(--ccp-store-accent,#0b6fd3));--adp-color-other-month:#98a2b3;}
+html.ccp-admin-dark,html.ccp-theme-dark,html[data-ccp-picker-theme="dark"]{--adp-color:#edf2f7;--adp-background-color:#1f2937;--adp-border-color:#475569;--adp-color-other-month:#9ba7bb;--adp-color-disabled:#94a3b8;}
+.air-datepicker{z-index:20060;box-shadow:0 12px 38px rgba(0,0,0,.15);}
+.air-datepicker.-inline-{box-shadow:none}
+.air-datepicker-nav--title{font-weight:600}
+.input-group.date .form-control,.input-group.time .form-control,.input-group.datetime .form-control{min-width:0}
+@media(max-width:767px){.air-datepicker{max-width:calc(100vw - 20px)}}

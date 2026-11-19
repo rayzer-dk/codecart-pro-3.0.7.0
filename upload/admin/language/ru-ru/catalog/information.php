@@ -1,0 +1,57 @@
+<?php
+// CodeCart PRO ru-ru language pack. Missing keys fall back to en-gb.
+$_['heading_title'] = 'Информационные страницы';
+$_['text_success'] = 'Настройки успешно изменены!';
+$_['text_list'] = 'Список страниц';
+$_['text_add'] = 'Добавить';
+$_['text_edit'] = 'Редактирование';
+$_['text_default'] = 'По умолчанию';
+$_['text_keyword'] = 'Должен быть уникальным на всю систему, без пробелов и спецсимволов.';
+$_['column_title'] = 'Название страницы';
+$_['column_sort_order'] = 'Порядок сортировки';
+$_['column_noindex'] = 'Индексация';
+$_['column_action'] = 'Действие';
+$_['entry_title'] = 'Название статьи';
+$_['entry_meta_h1'] = 'HTML-тег H1';
+$_['entry_description'] = 'Описание';
+$_['entry_meta_title'] = 'Мета-тег Title';
+$_['entry_meta_keyword'] = 'Мета-тег Keywords';
+$_['entry_meta_description'] = 'Мета-тег Description';
+$_['entry_store'] = 'Магазины';
+$_['entry_keyword'] = 'SEO URL';
+$_['entry_bottom'] = 'Показывать в футере';
+$_['entry_status'] = 'Статус';
+$_['entry_sort_order'] = 'Порядок сортировки';
+$_['entry_layout'] = 'Изменить макет';
+$_['entry_noindex'] = 'Индексация';
+$_['help_bottom'] = 'Показывать в подвале \\ футере магазина';
+$_['error_warning'] = 'Внимательно проверьте форму на ошибки!';
+$_['error_permission'] = 'У вас недостаточно прав для внесения изменений!';
+$_['error_title'] = 'Название должно содержать от 3 до 64 символов!';
+$_['error_description'] = 'Описание должно содержать от 3 символов!';
+$_['error_meta_title'] = 'Мета-тег Title должен содержать от 0 до 255 символов!';
+$_['error_keyword'] = 'SEO URL уже используется!';
+$_['error_unique'] = 'SEO URL должен быть уникальным!';
+$_['error_account'] = 'Эту страницу нельзя удалить, так как она используется в Политике безопасности по умолчанию!';
+$_['error_checkout'] = 'Эту страницу нельзя удалить, так как она используется в Условиях соглашения по умолчанию!';
+$_['error_affiliate'] = 'Эту страницу нельзя удалить, так как она используется в Условиях партнерской программы!';
+$_['error_return'] = 'Эту страницу нельзя удалить, так как она используется в Условиях возврата товара !';
+$_['error_store'] = 'Эту страницу нельзя удалить, так как она используется в %s магазинах!';
+$_['button_generate_seo_url'] = 'Сгенерировать SEO URL';
+$_['error_meta_h1'] = 'HTML-тег H1 должен содержать от 0 до 255 символов!';
+
+// CodeCart PRO: aligned locale keys
+$_['help_keyword'] = 'Должен быть уникальным во всей системе, без пробелов и спецсимволов';
+$_['help_noindex'] = 'Индексация поисковыми системами Google, Yandex, Bing и др.';
+
+// Per-page Schema.org JSON-LD settings
+$_['entry_schema_type'] = 'Тип разметки Schema.org';
+$_['help_schema_type'] = 'Выберите тип по содержанию этой страницы. Автоматически — WebPage. AboutPage — о компании; ContactPage — контакты; FAQPage — только при наличии реальных вопросов и ответов. Без разметки — отключает лишь тип этой страницы, общие WebSite/OnlineStore и хлебные крошки остаются. Сохраняется обычной кнопкой.';
+$_['text_schema_auto'] = 'Автоматически';
+$_['text_schema_webpage'] = 'Обычная страница (WebPage)';
+$_['text_schema_aboutpage'] = 'О компании (AboutPage)';
+$_['text_schema_contactpage'] = 'Контакты (ContactPage)';
+$_['text_schema_faqpage'] = 'Вопросы и ответы (FAQPage)';
+$_['text_schema_collectionpage'] = 'Подборка или каталог (CollectionPage)';
+$_['text_schema_article'] = 'Статья (Article)';
+$_['text_schema_none'] = 'Без разметки этой страницы';

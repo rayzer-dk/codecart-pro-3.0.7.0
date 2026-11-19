@@ -1,0 +1,442 @@
+<div id="filemanager" class="modal-dialog modal-lg">
+  <style>
+    #filemanager .modal-content{display:flex;flex-direction:column;max-height:calc(100vh - 60px);max-height:calc(100dvh - 60px)}
+    #filemanager .modal-body{display:flex;flex-direction:column;min-height:0;padding-bottom:0}
+    #filemanager .ccp-files-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+    #filemanager .ccp-files-actions,#filemanager .ccp-files-sort{display:flex;flex-wrap:wrap;gap:4px}
+    #filemanager .ccp-files-actions .btn,#filemanager .ccp-files-sort .btn{min-width:36px;padding-inline:9px}
+    #filemanager .ccp-files-search{width:clamp(150px,24%,225px);max-width:100%;margin-left:auto}
+    #filemanager .ccp-files-scroll{min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable;padding:3px 3px 15px}
+    #filemanager[aria-busy="true"] .ccp-files-scroll{cursor:progress;opacity:.65}
+    #filemanager .ccp-files-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+    #filemanager .ccp-files-tile{min-width:0}
+    #filemanager .ccp-files-tile>.thumbnail,#filemanager .ccp-files-tile>.directory{display:flex;align-items:center;justify-content:center;height:110px;margin:0 0 6px}
+    #filemanager .ccp-files-tile>.directory{border:1px solid var(--ccp-border,#d8dee6);border-radius:4px;text-decoration:none}
+    #filemanager .ccp-files-folder{font-size:48px;line-height:1;pointer-events:none}
+    #filemanager .ccp-files-tile>a:focus-visible{outline:2px solid #0b6fd3;outline-offset:-3px}
+    #filemanager .ccp-files-tile>a:focus:not(:focus-visible){outline:0}
+    #filemanager .ccp-files-tile img{width:100px;height:100px;max-width:100%;max-height:100%;object-fit:contain}
+    #filemanager .ccp-files-tile label{display:flex;align-items:baseline;justify-content:center;gap:5px;margin:0;font-weight:500;text-align:left;overflow-wrap:anywhere}
+    #filemanager .ccp-files-tile label input{flex:none}
+    #filemanager .ccp-files-limit{display:flex;align-items:center;gap:7px;margin:0;font-weight:500}
+    #filemanager .ccp-files-limit select{width:auto}
+    @media(max-width:767px){
+      #filemanager .modal-content{max-height:calc(100vh - 20px);max-height:calc(100dvh - 20px)}
+      #filemanager .ccp-files-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      #filemanager .ccp-files-search{margin-left:0}
+    }
+    @media(max-width:430px){ #filemanager .ccp-files-search{width:100%}}
+  </style>
+  <div class="modal-content">
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+      <h4 class="modal-title">{{ heading_title }}</h4>
+    </div>
+    <div class="modal-body">
+      <div class="ccp-files-toolbar">
+        <div class="ccp-files-actions"><a href="{{ parent }}" data-toggle="tooltip" title="{{ button_parent }}" id="button-parent" class="btn btn-default"><i class="fa fa-level-up"></i></a> <a href="{{ refresh }}" data-toggle="tooltip" title="{{ button_refresh }}" id="button-refresh" class="btn btn-default"><i class="fa fa-refresh"></i></a>
+          <button type="button" data-toggle="tooltip" title="{{ button_upload }}" id="button-upload" class="btn btn-primary"><i class="fa fa-upload"></i></button>
+          <button type="button" data-toggle="tooltip" title="{{ button_folder }}" id="button-folder" class="btn btn-default"><i class="fa fa-folder"></i></button>
+          <button type="button" data-toggle="tooltip" title="{{ button_delete }}" id="button-delete" class="btn btn-danger"><i class="fa fa-trash-o"></i></button>
+          {% if webp_supported %}<button type="button" data-toggle="tooltip" title="{{ button_webp_selected }}" id="button-webp-selected" class="btn btn-default"><i class="fa fa-file-image-o"></i></button>
+          <button type="button" data-toggle="tooltip" title="{{ button_webp_all }}" id="button-webp-all" class="btn btn-default"><i class="fa fa-picture-o"></i></button>{% endif %}
+        </div>
+        <div class="ccp-files-sort" role="group" aria-label="{{ text_sort }}">
+          {% set sort_labels = {date: {asc: sort_date_asc, desc: sort_date_desc}, name: {asc: sort_name_asc, desc: sort_name_desc}, size: {asc: sort_size_asc, desc: sort_size_desc}, format: {asc: sort_format_asc, desc: sort_format_desc}} %}
+          {% for key, option in sort_options %}
+          {% set option_order = sort == key ? order : option.order %}
+          <button type="button" class="btn {{ sort == key ? 'btn-primary' : 'btn-default' }}" data-sort="{{ key }}" data-order="{{ option_order }}" data-toggle="tooltip" title="{{ sort_labels[key][option_order] }}" aria-label="{{ sort_labels[key][option_order] }}" aria-pressed="{{ sort == key ? 'true' : 'false' }}"><i class="fa {{ option.icon }}" aria-hidden="true"></i></button>
+          {% endfor %}
+          {% set next_order = order == 'asc' ? 'desc' : 'asc' %}
+          {% set reversed = order != sort_options[sort].order %}
+          <button type="button" class="btn {{ reversed ? 'btn-primary' : 'btn-default' }} ccp-files-direction" data-sort="{{ sort }}" data-order="{{ next_order }}" aria-pressed="{{ reversed ? 'true' : 'false' }}" title="{{ sort_labels[sort][order] }}. {{ text_sort_reverse }}." aria-label="{{ sort_labels[sort][order] }}. {{ text_sort_reverse }}." data-toggle="tooltip"><i class="fa fa-sort-amount-{{ order }}" aria-hidden="true"></i></button>
+        </div>
+        <div class="input-group ccp-files-search">
+            <input type="search" name="search" value="{{ filter_name|e('html_attr') }}" placeholder="{{ entry_search }}" aria-label="{{ entry_search }}" class="form-control">
+            <span class="input-group-btn">
+            <button type="button" data-toggle="tooltip" title="{{ button_search }}" aria-label="{{ button_search }}" id="button-search" class="btn btn-primary"><i class="fa fa-search"></i></button>
+            </span>
+        </div>
+      </div>
+      <div id="webp-progress" class="alert alert-info" style="display:none; margin-top:15px;"></div>
+      <div class="ccp-files-scroll">
+      {% if not images %}
+      <p class="text-center text-muted">{{ text_no_results }}</p>
+      {% endif %}
+      <div class="ccp-files-grid">
+        {% for image in images %}
+        <div class="ccp-files-tile text-center">
+          {% if image.type == 'directory' %}
+          <a href="{{ image.href }}" class="directory" aria-label="{{ image.name|e('html_attr') }}"><i class="fa fa-folder ccp-files-folder" aria-hidden="true"></i></a>
+          <label>
+            <input type="checkbox" name="path[]" value="{{ image.path|e('html_attr') }}" />
+            {{ image.name|e }}</label>
+          {% endif %}
+          {% if image.type == 'image' %}
+          <a href="{{ image.href|e('html_attr') }}" class="thumbnail"{% if image.source != image.href %} data-source="{{ image.source|e('html_attr') }}"{% endif %}><img src="{{ image.thumb|e('html_attr') }}" alt="{{ image.name|e('html_attr') }}" title="{{ image.name|e('html_attr') }}" width="100" height="100" loading="lazy" decoding="async" /></a>
+          <label>
+            <input type="checkbox" name="path[]" value="{{ image.path|e('html_attr') }}" />
+            {{ image.name|e }}</label>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      </div>
+    </div>
+    <div class="modal-footer ccp-filemanager-footer">
+      {% if multiple %}<button type="button" id="button-select-multiple" class="btn btn-primary ccp-filemanager-select"><i class="fa fa-check"></i> {{ button_select }}</button>{% endif %}
+      <label class="ccp-files-limit">{{ entry_page_size }}
+        <select id="filemanager-limit" class="form-control">
+          {% for page_size in page_sizes %}
+          <option value="{{ page_size }}"{% if limit == page_size %} selected{% endif %}>{{ page_size }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <div class="ccp-filemanager-pagination">{{ pagination }}</div>
+    </div>
+  </div>
+</div>
+<script type="text/javascript"><!--
+(function() {
+var $manager = $('#filemanager');
+
+function loadFileManager(url, focus) {
+	if ($manager.attr('aria-busy') === 'true') {
+		return;
+	}
+	$manager.attr('aria-busy', 'true');
+	$manager.find('[data-toggle="tooltip"]').tooltip('hide');
+	$('#modal-image').load(url, function(response, status, xhr) {
+		$manager.removeAttr('aria-busy');
+		if (status === 'error') {
+			CodeCartAdmin.ajaxError(xhr, xhr.statusText);
+			return;
+		}
+		if (focus) {
+			$('#filemanager').find(focus).trigger('focus');
+		}
+	});
+}
+
+try {
+	if (window.localStorage) {
+		window.localStorage.setItem('codecart_filemanager_directory', '{{ current_directory|escape('js') }}');
+		window.localStorage.setItem('codecart_filemanager_sort', '{{ sort }}');
+		window.localStorage.setItem('codecart_filemanager_order', '{{ order }}');
+	}
+} catch (e) {}
+{% if target %}
+$('#filemanager a.thumbnail:not(.directory)').on('click', function(e) {
+	e.preventDefault();
+
+	{% if thumb %}
+	$('#{{ thumb|escape('js') }}').find('img').attr('src', $(this).find('img').attr('src'));
+	{% endif %}
+
+	$('#{{ target|escape('js') }}').val($(this).parent().find('input').val());
+
+	$('#modal-image').modal('hide');
+});
+{% endif %}
+{% if select_event and not target %}
+$('#filemanager a.thumbnail:not(.directory)').on('click', function(e) {
+	e.preventDefault();
+	var $link = $(this);
+	var item = {
+		path: $link.parent().find('input[name="path[]"]').val(),
+		thumb: $link.find('img').attr('src'),
+		href: $link.attr('href'),
+		source: $link.attr('data-source') || $link.attr('href')
+	};
+	$(document).trigger('{{ select_event|escape('js') }}', [[item]]);
+	$('#modal-image').modal('hide');
+});
+{% endif %}
+
+$manager.find('a.directory, .pagination a, #button-parent, #button-refresh').on('click', function(e) {
+	e.preventDefault();
+	loadFileManager(this.href, e.originalEvent && !e.originalEvent.detail ? '#button-parent' : '');
+});
+
+$('#filemanager input[name=\'search\']').on('keydown', function(e) {
+	if (e.which == 13) {
+		$('#button-search').trigger('click');
+	}
+});
+
+function searchFileManager(sort, order, limit, focus) {
+	var url = 'index.php?route=common/filemanager&user_token={{ user_token }}&directory={{ directory }}&sort=' + encodeURIComponent(sort) + '&order=' + encodeURIComponent(order) + '&limit=' + encodeURIComponent(limit);
+
+	var filter_name = $('#filemanager input[name=\'search\']').val();
+
+	if (filter_name) {
+		url += '&filter_name=' + encodeURIComponent(filter_name);
+	}
+
+	{% if thumb %}
+	url += '&thumb=' + '{{ thumb|escape('js') }}';
+	{% endif %}
+
+	{% if target %}
+	url += '&target=' + '{{ target|escape('js') }}';
+	{% endif %}
+	{% if multiple %}
+	url += '&multiple=1';
+	{% endif %}
+	{% if select_event %}
+	url += '&select_event=' + encodeURIComponent('{{ select_event|escape('js') }}');
+	{% endif %}
+
+	loadFileManager(url, focus);
+}
+$('#button-search').on('click', function() {
+	searchFileManager('{{ sort }}', '{{ order }}', '{{ limit }}', 'input[name="search"]');
+});
+$('#filemanager .ccp-files-sort button').on('click', function() {
+	var isDirection = this.classList.contains('ccp-files-direction');
+	if (!isDirection && this.getAttribute('aria-pressed') === 'true') {
+		return;
+	}
+	var focus = isDirection ? '.ccp-files-direction' : '.ccp-files-sort [aria-pressed="true"]:not(.ccp-files-direction)';
+	searchFileManager(this.dataset.sort, this.dataset.order, '{{ limit }}', focus);
+});
+$('#filemanager-limit').on('change', function() {
+	searchFileManager('{{ sort }}', '{{ order }}', this.value, '#filemanager-limit');
+});
+{% if multiple %}
+$('#button-select-multiple').on('click', function() {
+	var images = [];
+	$('#filemanager input[name="path[]"]:checked').each(function() {
+		var $box = $(this);
+		var $cell = $box.closest('.text-center');
+		var $thumb = $cell.find('a.thumbnail img');
+		if ($thumb.length) {
+			images.push({path: $box.val(), thumb: $thumb.attr('src'), href: $cell.find('a.thumbnail').attr('href')});
+		}
+	});
+	if (images.length) {
+		{% if select_event %}
+		$(document).trigger('{{ select_event|escape('js') }}', [images]);
+		{% else %}
+		$(document).trigger('codecart.images.selected', [images]);
+		{% endif %}
+		$('#modal-image').modal('hide');
+	}
+});
+{% endif %}
+})();
+//--></script>
+<script type="text/javascript"><!--
+{% if webp_supported %}
+function codecartWebpRequest(data, onSuccess) {
+	$.ajax({
+		url: 'index.php?route=common/filemanager/convertWebp&user_token={{ user_token }}',
+		type: 'post',
+		dataType: 'json',
+		data: data,
+		success: function(json) {
+			if (json.error) {
+				CodeCartAdmin.toast('danger', json.error);
+				return;
+			}
+			onSuccess(json);
+		},
+		error: function(xhr, ajaxOptions, thrownError) {
+			CodeCartAdmin.ajaxError(xhr, thrownError);
+		}
+	});
+}
+
+$('#button-webp-selected').on('click', function() {
+	var paths = [];
+	$('#filemanager input[name="path[]"]:checked').each(function() {
+		if ($(this).closest('.text-center').find('a.thumbnail').length) {
+			paths.push($(this).val());
+		}
+	});
+	if (!paths.length) {
+		alert('{{ error_webp_select|escape('js') }}');
+		return;
+	}
+	var $button = $(this).prop('disabled', true);
+	codecartWebpRequest({mode: 'selected', path: paths}, function(json) {
+		$button.prop('disabled', false);
+		CodeCartAdmin.toast('success', json.success);
+		$('#button-refresh').trigger('click');
+	});
+});
+
+$('#button-webp-all').on('click', function() {
+	if (!confirm('{{ text_webp_confirm_all|escape('js') }}')) {
+		return;
+	}
+	var $button = $(this).prop('disabled', true);
+	var converted = 0, skipped = 0, failed = 0;
+	var $progress = $('#webp-progress').show();
+	function run(offset) {
+		codecartWebpRequest({mode: 'all', offset: offset}, function(json) {
+			converted += parseInt(json.converted || 0, 10);
+			skipped += parseInt(json.skipped || 0, 10);
+			failed += parseInt(json.failed || 0, 10);
+			$progress.text('{{ text_webp_progress|escape('js') }}'.replace('%d', json.next_offset || 0).replace('%d', json.total || 0));
+			if (!json.done) {
+				run(json.next_offset || 0);
+			} else {
+				$button.prop('disabled', false);
+				$progress.text('{{ text_webp_result|escape('js') }}'.replace('%d', converted).replace('%d', skipped).replace('%d', failed));
+				$('#button-refresh').trigger('click');
+			}
+		});
+	}
+	run(0);
+});
+{% endif %}
+//--></script>
+
+<script type="text/javascript"><!--
+$('#button-upload').on('click', function() {
+	$('#form-upload').remove();
+
+	$('body').prepend('<form enctype="multipart/form-data" id="form-upload" style="display: none;"><input type="file" name="file[]" value="" multiple="multiple" accept=".jpg,.jpeg,.png,.gif,.webp,.avif,.svg,image/*" /></form>');
+
+	$('#form-upload input[name=\'file[]\']').trigger('click');
+
+	if (typeof timer != 'undefined') {
+    	clearInterval(timer);
+	}
+
+	timer = setInterval(function() {
+		if ($('#form-upload input[name=\'file[]\']').val() != '') {
+			clearInterval(timer);
+
+			$.ajax({
+				url: 'index.php?route=common/filemanager/upload&user_token={{ user_token }}&directory={{ directory }}',
+				type: 'post',
+				dataType: 'json',
+				data: new FormData($('#form-upload')[0]),
+				cache: false,
+				contentType: false,
+				processData: false,
+				beforeSend: function() {
+					$('#button-upload i').replaceWith('<i class="fa fa-circle-o-notch fa-spin"></i>');
+					$('#button-upload').prop('disabled', true);
+				},
+				complete: function() {
+					$('#button-upload i').replaceWith('<i class="fa fa-upload"></i>');
+					$('#button-upload').prop('disabled', false);
+				},
+				success: function(json) {
+					if (json['error']) {
+						CodeCartAdmin.toast('danger', json['error']);
+					}
+
+					if (json['success']) {
+						CodeCartAdmin.toast('success', json['success']);
+
+						$('#button-refresh').trigger('click');
+					}
+				},
+				error: function(xhr, ajaxOptions, thrownError) {
+					CodeCartAdmin.ajaxError(xhr, thrownError);
+				}
+			});
+		}
+	}, 500);
+});
+
+$('#button-folder').popover({
+	html: true,
+	sanitize: false,
+	placement: 'bottom',
+	trigger: 'click',
+	title: '{{ entry_folder }}',
+	content: function() {
+		html  = '<div class="input-group">';
+		html += '  <input type="text" name="folder" value="" placeholder="{{ entry_folder }}" class="form-control">';
+		html += '  <span class="input-group-btn"><button type="button" title="{{ button_folder }}" id="button-create" class="btn btn-primary"><i class="fa fa-plus-circle"></i></button></span>';
+		html += '</div>';
+
+		return html;
+	}
+});
+
+$('#button-folder').on('shown.bs.popover', function() {
+	$('#button-create').on('click', function() {
+		$.ajax({
+			url: 'index.php?route=common/filemanager/folder&user_token={{ user_token }}&directory={{ directory }}',
+			type: 'post',
+			dataType: 'json',
+			data: 'folder=' + encodeURIComponent($('input[name=\'folder\']').val()),
+			beforeSend: function() {
+				$('#button-create').prop('disabled', true);
+			},
+			complete: function() {
+				$('#button-create').prop('disabled', false);
+			},
+			success: function(json) {
+				if (json['error']) {
+					CodeCartAdmin.toast('danger', json['error']);
+				}
+
+				if (json['success']) {
+					CodeCartAdmin.toast('success', json['success']);
+
+					$('#button-refresh').trigger('click');
+				}
+			},
+			error: function(xhr, ajaxOptions, thrownError) {
+				CodeCartAdmin.ajaxError(xhr, thrownError);
+			}
+		});
+	});
+});
+
+function ccpDeleteSelected(force) {
+	var payload = $('input[name^=\'path\']:checked').serializeArray();
+
+	if (force) {
+		payload.push({name: 'force', value: '1'});
+	}
+
+	$.ajax({
+		url: 'index.php?route=common/filemanager/delete&user_token={{ user_token }}',
+		type: 'post',
+		dataType: 'json',
+		data: payload,
+		beforeSend: function() {
+			$('#button-delete').prop('disabled', true);
+		},
+		complete: function() {
+			$('#button-delete').prop('disabled', false);
+		},
+		success: function(json) {
+			if (json['error']) {
+				CodeCartAdmin.toast('danger', json['error']);
+			}
+
+			if (json['warning']) {
+				if (confirm(json['warning'])) {
+					ccpDeleteSelected(true);
+				}
+
+				return;
+			}
+
+			if (json['success']) {
+				CodeCartAdmin.toast('success', json['success']);
+
+				$('#button-refresh').trigger('click');
+			}
+		},
+		error: function(xhr, ajaxOptions, thrownError) {
+			CodeCartAdmin.ajaxError(xhr, thrownError);
+		}
+	});
+}
+
+$('#modal-image #button-delete').on('click', function(e) {
+	if (confirm('{{ text_confirm }}')) {
+		ccpDeleteSelected(false);
+	}
+});
+//--></script>

@@ -1,0 +1,8 @@
+<?php
+// CodeCart PRO ru-ru language pack. Missing keys fall back to en-gb.
+$_['heading_title'] = 'Доступ запрещен!';
+$_['text_permission'] = 'У Вас нет прав для доступа к этой странице. Если она Вам нужна, обратитесь к администратору. В том случае если Вы входите в группу Администраторов отредактируйте права группы.';
+$_['text_error_label'] = 'Ограничение доступа';
+$_['button_dashboard'] = 'На панель управления';
+$_['text_visual_status'] = 'ДОСТУП ЗАПРЕЩЁН';
+$_['text_error_area'] = 'АДМИНПАНЕЛЬ';

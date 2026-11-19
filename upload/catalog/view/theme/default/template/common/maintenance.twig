@@ -1,0 +1,28 @@
+{{ header }}
+<main id="common-maintenance" class="ccp-error-host ccp-error-host--store">
+  <div class="ccp-error-host__inner">
+    <section class="ccp-error ccp-error--503" aria-labelledby="ccp-error-title">
+      <div class="ccp-error__content">
+        <div class="ccp-error__eyebrow">
+          <span class="ccp-error__dot" aria-hidden="true"></span>
+          <span>{{ text_error_label }}</span>
+          <span class="ccp-error__http">HTTP 503</span>
+        </div>
+        <h1 id="ccp-error-title" class="ccp-error__title">{{ heading_title }}</h1>
+        <p class="ccp-error__description">{{ text_error_description }}</p>
+        <div class="ccp-error__actions">
+          <a href="{{ continue }}" class="ccp-error__button">{{ button_retry }}</a>
+        </div>
+        <div class="ccp-error__divider" aria-hidden="true"></div>
+        <div class="ccp-error__footnote">HTTP 503 · CodeCart PRO</div>
+      </div>
+      <div class="ccp-error__visual" aria-hidden="true">
+        <span class="ccp-error__visual-top">{{ text_visual_status }}</span>
+        <span class="ccp-error__code">503</span>
+        <span class="ccp-error__visual-bottom">HTTP · 05</span>
+        <span class="ccp-error__visual-marker"></span>
+      </div>
+    </section>
+  </div>
+</main>
+{{ footer }}

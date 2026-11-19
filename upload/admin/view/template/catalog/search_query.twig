@@ -1,0 +1,163 @@
+{{ header }}{{ column_left }}
+<div id="content">
+  <div class="page-header">
+    <div class="container-fluid">
+      <div class="pull-right">
+        {% if can_modify %}
+        <form action="{{ clear }}" method="post" style="display:inline" onsubmit="return confirm('{{ text_clear_confirm|escape('js') }}');">
+          <button type="submit" class="btn btn-danger" data-toggle="tooltip" title="{{ button_clear }}"><i class="fa fa-trash-o"></i></button>
+        </form>
+        {% endif %}
+      </div>
+      <h1>{{ heading_title }}</h1>
+      <ul class="breadcrumb">
+        {% for breadcrumb in breadcrumbs %}
+        <li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="container-fluid">
+    {% if error_warning %}<div class="alert alert-danger"><i class="fa fa-exclamation-circle"></i> {{ error_warning }}</div>{% endif %}
+    {% if success %}<div class="alert alert-success alert-dismissible"><i class="fa fa-check-circle"></i> {{ success }}<button type="button" class="close" data-dismiss="alert">&times;</button></div>{% endif %}
+    <div class="panel panel-default">
+      <div class="panel-heading"><h3 class="panel-title"><i class="fa fa-sliders"></i> {{ heading_search_settings }}</h3></div>
+      <div class="panel-body">
+        <div class="form-group">
+          <label for="search-store">{{ text_search_store }}</label>
+          <select id="search-store" class="form-control input-sm" style="max-width:340px">
+            {% for store in search_stores %}
+            <option value="{{ store.href }}"{% if store.store_id == search_store_id %} selected="selected"{% endif %}>{{ store.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <form action="{{ search_settings_action }}" method="post" id="form-codecart-search">
+          <input type="hidden" name="store_id" value="{{ search_store_id }}" />
+          <div class="row">
+            <div class="col-md-6">
+              <label class="checkbox-inline"><input type="checkbox" name="index_status" value="1"{% if search_index_status %} checked="checked"{% endif %} /> <strong>{{ text_search_index }}</strong></label>
+              <p class="help-block">{{ text_search_index_help }}</p>
+            </div>
+            <div class="col-md-6">
+              <label class="checkbox-inline"><input type="checkbox" name="attributes_status" value="1"{% if search_attributes_status %} checked="checked"{% endif %} /> <strong>{{ text_search_attributes }}</strong></label>
+              <p class="help-block">{{ text_search_attributes_help }}</p>
+            </div>
+          </div>
+          <h4>{{ text_search_synonyms }}</h4>
+          <p class="help-block">{{ text_search_synonyms_help }}</p>
+          {% for lang in search_languages %}
+          <div class="form-group">
+            <label for="search-synonyms-{{ lang.language_id }}">{{ lang.name }}</label>
+            <textarea id="search-synonyms-{{ lang.language_id }}" name="synonyms[{{ lang.language_id }}]" rows="2" maxlength="6000" class="form-control" placeholder="насос, помпа, pump">{{ lang.synonyms }}</textarea>
+            <div style="margin-top:7px" class="row">
+              <div class="col-sm-8">
+                <span id="search-index-state-{{ lang.language_id }}" class="text-muted">
+                  {% if lang.ready %}{{ text_search_index_ready }}{% else %}{{ text_search_index_needed }}{% endif %} · {{ text_search_index_count }}: <span class="search-index-count">{{ lang.indexed }}</span>
+                </span>
+              </div>
+              <div class="col-sm-4 text-right">
+                {% if can_modify %}
+                <button type="button" class="btn btn-default btn-sm search-rebuild" data-language-id="{{ lang.language_id }}">
+                  <i class="fa fa-refresh"></i> {{ button_search_rebuild }}
+                </button>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+          <p class="help-block">{{ text_search_rebuild_warning }}</p>
+          {% if can_modify %}<button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> {{ button_search_save }}</button>{% endif %}
+        </form>
+      </div>
+    </div>
+    <div class="panel panel-default">
+      <div class="panel-heading"><h3 class="panel-title"><i class="fa fa-search"></i> {{ heading_title }}</h3></div>
+      <div class="panel-body">
+        <p class="help-block">{{ text_help }}</p>
+        <div class="btn-toolbar" style="margin-bottom:14px">
+          <div class="btn-group">
+            <a href="{{ filter_all }}" class="btn btn-default{% if not zero_only %} active{% endif %}">{{ text_filter_all }}</a>
+            <a href="{{ filter_zero }}" class="btn btn-default{% if zero_only %} active{% endif %}">{{ text_filter_zero }}</a>
+          </div>
+          <div class="btn-group">
+            {% for period in periods %}<a href="{{ period.href }}" class="btn btn-default{% if period.active %} active{% endif %}">{{ period.days }} {{ text_days }}</a>{% endfor %}
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead>
+              <tr>
+                <td class="text-left">{{ column_query }}</td>
+                <td class="text-right">{{ column_searches }}</td>
+                <td class="text-right">{{ column_zero }}</td>
+                <td class="text-left">{{ column_corrected }}</td>
+                <td class="text-left">{{ column_last }}</td>
+              </tr>
+            </thead>
+            <tbody>
+              {% if queries %}
+              {% for query in queries %}
+              <tr>
+                <td class="text-left">{{ query.text }}</td>
+                <td class="text-right">{{ query.searches }}</td>
+                <td class="text-right">{% if query.zero_results %}<span class="label label-danger">{{ query.zero_results }}</span>{% else %}0{% endif %}</td>
+                <td class="text-left">{% if query.corrected %}{{ query.corrected_to }} <span class="text-muted">({{ query.corrected }})</span>{% endif %}</td>
+                <td class="text-left">{{ query.last_day }}</td>
+              </tr>
+              {% endfor %}
+              {% else %}
+              <tr><td class="text-center" colspan="5">{{ text_no_results }}</td></tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+        <div class="row"><div class="col-sm-6 text-left">{{ pagination }}</div><div class="col-sm-6 text-right">{{ results }}</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  'use strict';
+  var store = document.getElementById('search-store');
+  if (store) {
+    store.addEventListener('change', function () { window.location.href = store.value; });
+  }
+  var active = false;
+  $('.search-rebuild').on('click', function () {
+    if (active) { return; }
+    var button = $(this), languageId = button.attr('data-language-id');
+    var state = $('#search-index-state-' + languageId);
+    active = true;
+    $('.search-rebuild').prop('disabled', true);
+    function step(mode) {
+      $.ajax({
+        url: '{{ search_rebuild_action|escape('js') }}',
+        type: 'POST',
+        dataType: 'json',
+        data: {store_id: {{ search_store_id }}, language_id: languageId, mode: mode}
+      }).done(function (response) {
+        if (response.error) {
+          state.text(response.error);
+          active = false;
+          $('.search-rebuild').prop('disabled', false);
+          return;
+        }
+        state.text('{{ text_search_index_count|escape('js') }}: ' + response.indexed + (response.ready ? ' · {{ text_search_index_ready|escape('js') }}' : ''));
+        if (response.done) {
+          active = false;
+          $('.search-rebuild').prop('disabled', false);
+        } else {
+          window.setTimeout(function () { step('step'); }, 250);
+        }
+      }).fail(function () {
+        state.text('Index request failed.');
+        active = false;
+        $('.search-rebuild').prop('disabled', false);
+      });
+    }
+    step('start');
+  });
+}());
+</script>
+{{ footer }}

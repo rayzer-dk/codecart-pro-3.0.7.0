@@ -1,0 +1,7 @@
+Experimental dependency refresh 2026-11-19
+- jQuery 2.1.1 compatibility loaders now select jQuery 3.8.0 and Migrate 3.6.0 (not 3.7.1/3.4.1).
+- Official jQuery 4.1.0 runtime vendored locally for both admin/catalog; NOT yet the default, will be activated only when the Migrate 4.0.2 package and browser regression succeed.
+- Moment.js 2.31.0 (min + locales) shipped in both legacy paths. Day.js/Air Datepicker remains the preferred new API, Moment remains fallback.
+- jQVMap 1.5.1 (both JS distributions and CSS) refreshes old admin files. Its 2016-era compatibility with jQuery 4 needs testing.
+- Existing Flot files will be staged separately in a consistent 4.2.6 set; do not mix 0.8.1 plugins and 4.x core.
+- Production and all third-party modules still need live validation.

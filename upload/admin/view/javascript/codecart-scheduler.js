@@ -1,0 +1,238 @@
+/* Scheduler task editor: inline, directly below the selected row.
+ * Uses the original OpenCart POST form, never saves entity data via AJAX.
+ * AJAX only loads task details; GET protected by user_token and permissions.
+ */
+(function ($) {
+  'use strict';
+  $(function () {
+    var $tabs = $('#ccp-scheduler-tabs a[data-toggle="tab"]');
+    function showTab(hash) {
+      if (hash === '#ccp-scheduler-history') { hash = '#ccp-scheduler-tab-tasks'; }
+      if (hash === '#scheduler-form') { hash = '#ccp-scheduler-tab-tasks'; }
+      var $tab = $tabs.filter('[href="' + hash + '"]');
+      if ($tab.length) { $tab.tab('show'); }
+    }
+    if (window.location.hash) { showTab(window.location.hash); }
+    else if (/[?&]queue_(?:page|status|search|sort|limit)=/.test(window.location.search)) { showTab('#ccp-scheduler-tab-queue'); }
+    else if (/[?&]history_(?:page|task)=/.test(window.location.search)) { showTab('#ccp-scheduler-tab-tasks'); }
+    $tabs.on('shown.bs.tab', function (event) {
+      var hash = $(event.target).attr('href');
+      if (hash && window.history && window.history.replaceState) {
+        window.history.replaceState(null, '', window.location.pathname + window.location.search + hash);
+      }
+    });
+    var $panel = $('#scheduler-form');
+    if (!$panel.length) { return; }
+    var hasHandlers = $panel.attr('data-has-handlers') === '1';
+
+    var $home = $('<div id="ccp-scheduler-form-home" aria-hidden="true"></div>').insertBefore($panel);
+    var $form = $panel.find('form').first();
+    var $heading = $panel.find('.panel-title').first();
+    var $add = $('#button-scheduler-add');
+    var url = $panel.attr('data-info-url') || '';
+    var editorRow = null;
+    var editingId = null;
+    var pendingRequest = null;
+    var $frequency = $('#input-scheduler-frequency');
+    var $interval = $('#input-scheduler-interval');
+    var $customInterval = $('#scheduler-custom-interval');
+    var $scheduleMode = $('#input-scheduler-mode');
+    var $calendar = $('#ccp-scheduler-calendar');
+    var $frequencyGroup = $('#ccp-scheduler-frequency-group');
+    var $scheduleTime = $('#input-scheduler-time');
+    var $cronGroup = $('#ccp-scheduler-expression-group');
+    var $cronExpression = $('#input-scheduler-expression');
+    var $weekdays = $calendar.find('input[name="schedule_days[]"]');
+
+    function updateScheduleMode() {
+      var weekly = $scheduleMode.val() === 'weekly';
+      $calendar.toggle(weekly);
+      $frequencyGroup.toggle(!weekly && $scheduleMode.val() !== 'cron');
+      $cronGroup.toggle($scheduleMode.val() === 'cron');
+      $cronExpression.prop('required', $scheduleMode.val() === 'cron');
+      $scheduleTime.prop('required', weekly);
+    }
+    function setSchedule(mode, days, time, expression) {
+      $scheduleMode.val(mode === 'weekly' || mode === 'cron' ? mode : 'interval');
+      $cronExpression.val(expression || '');
+      var mask = parseInt(days, 10);
+      if (isNaN(mask)) { mask = 127; }
+      $weekdays.each(function() { $(this).prop('checked', (mask & (1 << (parseInt(this.value,10) - 1))) !== 0); });
+      $scheduleTime.val(time || '03:00');
+      updateScheduleMode();
+    }
+    $scheduleMode.on('change', updateScheduleMode);
+    $('.js-cron-preset').on('click', function() { $cronExpression.val($(this).attr('data-cron')).trigger('focus'); });
+    $weekdays.on('change', function() { $calendar.toggleClass('ccp-scheduler-days-empty', !$weekdays.filter(':checked').length); });
+
+    function setFrequency(seconds) {
+      var value = String(parseInt(seconds, 10) || 3600);
+      $interval.val(value);
+      $frequency.val($frequency.find('option[value="' + value + '"]').length ? value : 'custom');
+      $customInterval.toggle($frequency.val() === 'custom');
+    }
+
+    $frequency.on('change', function () {
+      if ($(this).val() === 'custom') {
+        $customInterval.show();
+        $interval.trigger('focus');
+      } else {
+        $interval.val($(this).val());
+        $customInterval.hide();
+      }
+    });
+    setFrequency($interval.val());
+    updateScheduleMode();
+    if (+$form.find('input[name="scheduler_id"]').val() > 0) { $('#ccp-scheduler-handler-group').hide(); $interval.attr('min', '60'); }
+    else { $interval.attr('min', '300'); }
+
+    function resetForm() {
+      $form.find('input[name="scheduler_id"]').val('0');
+      $form.find('input[name="code"]').val('').prop('readOnly', true);
+      $form.find('input[name="route"]').val('');
+      $('#input-scheduler-available').val('');
+      $('#ccp-scheduler-handler-group').show();
+      $interval.attr('min', '300');
+      setFrequency(3600);
+      setSchedule('interval', 127, '03:00', '');
+      $form.find('textarea[name="args"]').val('{}');
+      $form.find('select[name="status"]').val('1');
+      $panel.find('.ccp-scheduler-form-error').hide();
+      $heading.empty().append($('<i class="fa fa-plus" aria-hidden="true"></i>'))
+        .append(document.createTextNode(' ' + ($panel.attr('data-add-title') || 'Add task')));
+    }
+
+    function restoreEditor(shouldReset) {
+      if (pendingRequest) { pendingRequest.abort(); pendingRequest = null; }
+      $panel.detach().insertAfter($home).toggle(hasHandlers);
+      if (editorRow) {
+        editorRow.remove();
+        editorRow = null;
+      }
+      editingId = null;
+      if (shouldReset) { resetForm(); }
+    }
+
+    function populateForm(task) {
+      $form.find('input[name="scheduler_id"]').val(task.scheduler_id);
+      $form.find('input[name="code"]').val(task.code).prop('readOnly', true);
+      $('#ccp-scheduler-handler-group').hide();
+      $interval.attr('min', '60');
+      $form.find('input[name="route"]').val(task.route);
+      setFrequency(task.interval_seconds);
+      setSchedule(task.schedule_mode, task.schedule_days, task.schedule_time, task.schedule_expression);
+      $form.find('textarea[name="args"]').val(task.args || '{}');
+      $form.find('select[name="status"]').val(String(task.status));
+      $panel.find('.ccp-scheduler-form-error').hide();
+      $heading.empty().append($('<i class="fa fa-pencil" aria-hidden="true"></i>'))
+        .append(document.createTextNode(' ' + ($panel.attr('data-edit-title') || 'Edit task')));
+    }
+
+    $('table.codecart-scheduler-table').on('click', '.js-scheduler-edit', function (event) {
+      if (!url || !$panel.length) { return; }
+      event.preventDefault();
+
+      var $link = $(this);
+      var id = parseInt($link.attr('data-id'), 10);
+      var $target = $link.closest('tr');
+      if (!id || !$target.length) { return; }
+
+      // A second click on the same pencil collapses its editor, including in-flight loading.
+      if (editorRow && editingId === id) { restoreEditor(true); return; }
+
+      // No hard page navigation: the loading indicator occupies the EXACT
+      // table row immediately below the clicked task.
+      restoreEditor(true);
+      editorRow = $('<tr class="ccp-scheduler-editor-row"><td colspan="8"></td></tr>').insertAfter($target);
+      editingId = id;
+      var $holder = editorRow.children('td');
+      var $progress = $('<div class="ccp-scheduler-editor-loading" role="status"></div>');
+      $progress.append($('<i class="fa fa-spinner fa-spin" aria-hidden="true"></i>'));
+      $progress.append(document.createTextNode(' ' + ($panel.attr('data-loading') || 'Loading task…')));
+      $holder.append($progress);
+      var requestedRow = editorRow;
+
+      pendingRequest = $.ajax({
+        url: url,
+        method: 'GET',
+        data: {scheduler_id: id},
+        dataType: 'json',
+        timeout: 15000,
+        cache: false
+      }).done(function (result) {
+        if (editorRow !== requestedRow) { return; }
+        if (!result || result.success !== true || +result.scheduler_id !== id) {
+          $progress.removeClass('ccp-scheduler-editor-loading')
+            .addClass('ccp-scheduler-editor-error')
+            .text((result && result.error) || $panel.attr('data-load-error') || 'Unable to load task.');
+          return;
+        }
+        populateForm(result);
+        $progress.remove();
+        $panel.detach().hide().appendTo($holder).fadeIn(160);
+        // Avoid jumping away from the selected row as the form expands.
+      }).fail(function (xhr, state) {
+        if (state === 'abort' || editorRow !== requestedRow) { return; }
+        var message = (xhr.responseJSON && xhr.responseJSON.error)
+          || $panel.attr('data-load-error') || 'Unable to load task.';
+        $progress.removeClass('ccp-scheduler-editor-loading')
+          .addClass('ccp-scheduler-editor-error').text(message);
+      }).always(function () {
+        if (editorRow === requestedRow) { pendingRequest = null; }
+      });
+    });
+
+    $panel.on('click', '.js-scheduler-cancel', function (event) {
+      if (!editorRow) { return; }
+      event.preventDefault();
+      restoreEditor(true);
+    });
+
+    $('#input-scheduler-available').on('change', function () {
+      if (+$form.find('input[name="scheduler_id"]').val() > 0) { return; }
+      var $selected = $(this).find('option:selected');
+      var route = $(this).val();
+      if (!route) { return; }
+      $form.find('input[name="route"]').val(route);
+      $form.find('input[name="code"]').val($selected.attr('data-code') || 'custom.' + route.split('/').pop());
+    });
+
+    $('#ccp-host-reveal').on('click', function () {
+      var field = document.getElementById('ccp-host-command');
+      if (!field) { return; }
+      field.type = field.type === 'password' ? 'text' : 'password';
+      $(this).find('i').toggleClass('fa-eye fa-eye-slash');
+    });
+    $('#ccp-host-frequency').on('change', function () {
+      var interval = $(this).val(), minute = '*', hour = '*';
+      if (interval === 'custom') { return; }
+      if (interval === '5' || interval === '10' || interval === '15' || interval === '30') { minute = '*/' + interval; }
+      if (interval === '60') { minute = '0'; }
+      if (interval === '1440') { minute = '0'; hour = '0'; }
+      $('#ccp-host-minute').val(minute);
+      $('#ccp-host-hour').val(hour);
+      $('#ccp-host-dom,#ccp-host-month,#ccp-host-dow').val('*');
+    });
+    $('.ccp-host-time').on('input', function () { $('#ccp-host-frequency').val('custom'); });
+    $('#ccp-copy-host-command, #ccp-host-copy-action').on('click', function () {
+      var field = document.getElementById('ccp-host-command');
+      if (!field || !field.value.trim()) { field && field.focus(); return; }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(field.value.trim()).catch(function () { field.select(); document.execCommand('copy'); });
+      } else { field.select(); document.execCommand('copy'); }
+    });
+
+    $('.js-scheduler-open-external').on('click', function (event) {
+      event.preventDefault();
+      showTab('#ccp-scheduler-tab-external');
+    });
+
+    $add.on('click', function (event) {
+      event.preventDefault();
+      if (editorRow) { restoreEditor(true); }
+      else { resetForm(); }
+      showTab('#ccp-scheduler-tab-tasks');
+      if ($panel[0] && hasHandlers) { $panel[0].scrollIntoView({behavior: 'smooth', block: 'start'}); }
+    });
+  });
+})(jQuery);

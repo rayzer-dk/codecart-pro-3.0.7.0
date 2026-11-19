@@ -1,9 +1,5 @@
 # CodeCart PRO 3.0.7.0
 
-Основной репозиторий системы CodeCart PRO 3.0.7.0.
+OpenCart/ocStore 3.x-based commerce system.
 
-Статус: перенос кода и проверка совместимости компонентов. Не использовать как готовый релиз до подтверждения полноты переноса и успешного интеграционного тестирования.
-
-Источник миграции: rayzer-dk/CodeCart-3-0-6 (основная ветка и отдельная экспериментальная ветка модернизации 3.7.0).
-
-Правило разработки: все дальнейшие изменения только в main этого репозитория.
+This branch combines legacy fixes with the experimental modern stack. The release is not production-certified until the full QA and module/checkout regression passes.

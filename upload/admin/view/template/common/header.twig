@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html dir="{{ direction }}" lang="{{ lang }}">
+<head>
+<meta charset="UTF-8" />
+<script>(function(){try{var m=localStorage.getItem('codecart_admin_theme')||'light';var d=m==='dark'||(m==='system'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('ccp-admin-dark',d);document.documentElement.setAttribute('data-ccp-admin-theme',m);{% if codecart_preview_bs5 %}document.documentElement.setAttribute('data-bs-theme',d?'dark':'light');{% endif %}}catch(e){}})();</script>
+<title>{{ title }}</title>
+<base href="{{ base }}" />
+{% if description %}
+<meta name="description" content="{{ description }}" />
+{% endif %}
+{% if keywords %}
+<meta name="keywords" content="{{ keywords }}" />
+{% endif %}
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+{% if codecart_preview_jquery4 %}
+<script src="view/javascript/jquery/jquery-4.1.0.min.js" type="text/javascript"></script>
+<script src="view/javascript/jquery/jquery-migrate-4.0.2.min.js" type="text/javascript"></script>
+{% else %}
+<script type="text/javascript" src="view/javascript/jquery/jquery-3.8.0.min.js"></script>
+<script type="text/javascript" src="view/javascript/jquery/jquery-migrate-3.6.0.min.js"></script>
+{% endif %}
+{% if codecart_preview_bs5 %}
+<link href="view/javascript/codecart-bs5-preview/bootstrap-5.3.9.min.css" rel="stylesheet" type="text/css" />
+<script src="view/javascript/codecart-bs5-preview/bootstrap-5.3.9.bundle.min.js"></script>
+<link href="view/javascript/codecart-bs5-preview/fontawesome/css/all.min.css" rel="stylesheet" type="text/css" />
+<link href="view/javascript/codecart-bs5-preview/fontawesome/css/v4-shims.min.css" rel="stylesheet" type="text/css" />
+<link href="view/javascript/codecart-bs5-preview/codecart-bs3-compat.css" rel="stylesheet" type="text/css" />
+<script src="view/javascript/codecart-bs5-preview/codecart-bs3-compat.js"></script>
+{% else %}
+<script type="text/javascript" src="view/javascript/bootstrap/js/bootstrap.min.js"></script>
+<link href="view/stylesheet/bootstrap.css" type="text/css" rel="stylesheet" />
+<link href="view/javascript/font-awesome/css/font-awesome.min.css?v=7.3.1-cc179" type="text/css" rel="stylesheet" />
+<script src="view/javascript/datetimepicker/codecart-native-datetimepicker.js?v=3.0.6.0-dtp187" type="text/javascript"></script>
+<link href="view/javascript/datetimepicker/codecart-native-datetimepicker.css?v=3.0.6.0-dtp187" type="text/css" rel="stylesheet" media="screen" />
+{% endif %}
+<link type="text/css" href="{{ core_stylesheet|e('html_attr') }}" rel="stylesheet" media="screen" />
+<style>:root{--ccp-admin-accent:{{ admin_accent_color }};--ccp-admin-sidebar:{{ admin_sidebar_color }};--ccp-admin-submenu:{{ admin_submenu_color }};--ccp-admin-surface:{{ admin_surface_color }};}</style>
+{% for style in styles %}
+<link type="text/css" href="{{ style.href }}" rel="{{ style.rel }}" media="{{ style.media }}" />
+{% endfor %}
+{% for link in links %}
+<link href="{{ link.href }}" rel="{{ link.rel }}" />
+{% endfor %}
+{% if not has_store_favicon %}<link rel="icon" type="image/webp" href="view/image/favicon.webp?v={{ package_build }}" />{% endif %}
+{% if (current_route|default('')) in ['extension/module/uni_settings','extension/theme/unishop2'] %}<link href="view/stylesheet/codecart-unishop-compat.css?v={{ package_build }}" type="text/css" rel="stylesheet" media="screen" />{% endif %}
+<script src="view/javascript/editor/opencart.js?v={{ package_build }}" type="text/javascript"></script>
+<script>window.CodeCartI18n={{ codecart_ui_i18n|json_encode|raw }};</script>
+<script src="{{ core_script|e('html_attr') }}" type="text/javascript"></script>
+<script src="view/javascript/codecart-admin-ui.js?v={{ package_build }}" type="text/javascript"></script>
+<script src="view/javascript/codecart-header-overflow.js?v={{ package_build }}" type="text/javascript" defer></script>
+{% for asset_id, asset in modern_assets %}
+{% if asset.preload %}<link rel="preload" href="{{ asset.url }}" as="{% if asset.type == 'style' %}style{% else %}script{% endif %}" />{% endif %}
+{% if asset.type == 'style' %}<link rel="stylesheet" href="{{ asset.url }}" media="{{ asset.media }}" />{% elseif asset.type == 'script' %}<script src="{{ asset.url }}"{% if asset.module %} type="module"{% else %} type="text/javascript"{% endif %}{% if asset.defer %} defer{% endif %}{% if asset.async %} async{% endif %}></script>{% endif %}
+{% endfor %}
+<link type="text/css" href="view/stylesheet/codecart-admin-dark.css?v={{ package_build }}" rel="stylesheet" media="screen" />
+{% for script in scripts %}
+<script type="text/javascript" src="{{ script }}"></script>
+{% endfor %}
+<link href="view/stylesheet/codecart-main-ui.css?v={{ package_build }}" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="container">
+<header id="header" class="navbar navbar-static-top">
+  <div class="container-fluid">
+    <div id="header-logo" class="navbar-header"><a href="{{ home }}" class="navbar-brand"><img src="view/image/logo.webp?v={{ package_build }}" alt="{{ heading_title }}" title="{{ heading_title }}" /></a></div>
+    {% if logged %}<a href="#" id="button-menu" class="hidden-md hidden-lg"><span class="fa fa-bars"></span></a>
+    <ul class="nav pull-left">
+      <li class="dropdown ccp-new-menu"><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" title="{{ text_new }}"><i class="fa fa-plus fa-lg"></i> <span class="header-item">{{ text_new }}</span></a>
+        <ul class="dropdown-menu dropdown-menu-left alerts-dropdown">
+          <li><a href="{{ new_product }}">{{ text_new_product }}</a></li>
+          <li><a href="{{ new_category }}">{{ text_new_category }}</a></li>
+          <li><a href="{{ new_manufacturer }}">{{ text_new_manufacturer }}</a></li>
+          <li><a href="{{ new_customer }}">{{ text_new_customer }}</a></li>
+          <li><a href="{{ new_download }}">{{ text_new_download }}</a></li>
+        </ul>
+      </li>
+    </ul>
+
+    <div id="oc-search-div" class="col-sm-3 col-md-3 pull-left">
+      {{ search }}
+    </div>
+    <ul class="nav navbar-nav navbar-right">
+      <li class="ccp-modification-refresh-menu ccp-ocmod-state-{{ ocmod_state }}"><a href="{{ modification_refresh }}" title="{{ ocmod_state_title }}" aria-label="{{ ocmod_state_title }}"><i class="fa fa-refresh" aria-hidden="true"></i><span class="ccp-ocmod-state-dot" aria-hidden="true"></span><span class="sr-only">{{ ocmod_state_title }}</span></a></li>
+      <li class="ccp-admin-theme-menu"><a href="#" id="ccp-admin-theme-toggle" role="button" title="{{ text_admin_theme_toggle }}" aria-label="{{ text_admin_theme_toggle }}" aria-pressed="false"><i class="fa fa-moon" aria-hidden="true"></i><span class="sr-only">{{ text_admin_theme }}</span></a></li>
+      {% if language_current_flag and language_options|length > 1 and language_action %}
+      <li class="dropdown ccp-admin-language-menu">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" title="{{ text_admin_language }}" aria-label="{{ text_admin_language }}">
+          <img src="{{ language_current_flag }}" class="ccp-admin-language-flag" alt="" aria-hidden="true" /><span class="sr-only">{{ text_admin_language }}</span>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-right" aria-label="{{ text_admin_language }}">
+          {% for option in language_options %}
+          <li>
+            <form action="{{ language_action }}" method="post">
+              <input type="hidden" name="language" value="{{ option.code }}" />
+              <input type="hidden" name="redirect" value="{{ language_return }}" />
+              <button type="submit" class="ccp-admin-language-option{% if option.code == language_current %} is-active{% endif %}"{% if option.code == language_current %} aria-current="true"{% endif %}>
+                <img src="{{ option.flag }}" class="ccp-admin-language-flag" alt="" aria-hidden="true" />
+                <span>{{ option.name }}</span>
+                {% if option.code == language_current %}<i class="fa fa-check" aria-hidden="true"></i>{% endif %}
+              </button>
+            </form>
+          </li>
+          {% endfor %}
+        </ul>
+      </li>
+      {% endif %}
+      <li class="dropdown ccp-notification-menu"><a href="#" class="dropdown-toggle ccp-notification-toggle" data-toggle="dropdown" title="{{ text_system_notifications }}" aria-label="{{ text_system_notifications }}"><i class="fa fa-bell"></i>{% if notification_count %}<span class="ccp-notification-count">{{ notification_count }}</span>{% endif %}</a>
+        <ul class="dropdown-menu dropdown-menu-right ccp-notification-dropdown">
+          <li class="dropdown-header"><i class="fa fa-bell-o"></i> {{ text_system_notifications }}</li>
+          {% if system_notifications %}{% for item in system_notifications %}<li class="ccp-notification-item ccp-notification-{{ item.severity }}"><a href="{{ notifications_href }}"><span class="ccp-notification-icon"><i class="fa {% if item.severity == 'critical' or item.severity == 'error' %}fa-exclamation-circle{% elseif item.severity == 'warning' %}fa-exclamation-triangle{% else %}fa-info-circle{% endif %}"></i></span><span class="ccp-notification-copy"><strong>{{ item.title|e('html') }}</strong><small>{{ item.message|e('html') }}</small></span></a></li>{% endfor %}{% else %}<li class="ccp-notification-empty"><a href="{{ notifications_href }}">{{ text_no_system_notifications }}</a></li>{% endif %}
+          <li role="separator" class="divider"></li><li class="ccp-notification-all"><a href="{{ notifications_href }}"><i class="fa fa-list fa-fw"></i> {{ text_all_system_notifications }}</a></li>
+        </ul>
+      </li>
+      <li class="dropdown ccp-admin-profile"><a href="#" class="dropdown-toggle" data-toggle="dropdown" title="{{ firstname }} {{ lastname }}">{% if image %}<img src="{{ image }}" alt="{{ firstname }} {{ lastname }}" title="{{ username }}" id="user-profile" class="img-circle" />{% else %}<span id="user-profile" class="ccp-admin-profile-fallback img-circle" title="{{ username }}" aria-hidden="true"><i class="fa fa-user"></i></span>{% endif %}<span class="ccp-admin-profile-name hidden-xs">{{ firstname }} {{ lastname }}</span> <i class="fa fa-caret-down fa-fw"></i></a>
+        <ul class="dropdown-menu dropdown-menu-right">
+          <li><a href="{{ profile }}"><i class="fa fa-user-circle-o fa-fw"></i> {{ text_profile }}</a></li>
+          <li><a href="{{ two_factor }}"><i class="fa fa-shield fa-fw"></i> {{ text_two_factor }}</a></li>
+          <li role="separator" class="divider"></li>
+          <li class="dropdown-header">{{ text_store }}</li>
+          {% for store in stores %}
+          <li><a href="{{ store.href }}" target="_blank">{{ store.name }}</a></li>
+          {% endfor %}
+          <li role="separator" class="divider"></li>
+          <li class="dropdown-header">{{ text_help }}</li>
+          <li><a href="{{ codecart_homepage }}" target="_blank" rel="noopener"><i class="fa fa-globe fa-fw"></i> {{ text_homepage }}</a></li>
+          <li><a href="{{ codecart_documentation }}" download><i class="fa fa-file-archive-o fa-fw"></i> {{ text_documentation }}</a></li>
+          <li><a href="#ccp-project-support-modal" data-toggle="modal"><i class="fa fa-heart fa-fw"></i> {{ text_project_support_header }}</a></li>
+          <li><a href="{{ codecart_forum|e }}" target="_blank" rel="noopener noreferrer"><i class="fa fa-comments fa-fw"></i> {{ text_telegram_forum }}</a></li>
+        </ul>
+      </li>
+      <li><a href="{{ logout }}"><i class="fa fa-sign-out"></i> <span class="hidden-xs hidden-sm hidden-md">{{ text_logout }}</span></a></li>
+      <li class="ccp-header-more" hidden><button type="button" id="ccp-header-more-toggle" aria-expanded="false" aria-controls="ccp-header-overflow-panel" title="{{ text_header_more }}" aria-label="{{ text_header_more }}"><i class="fa fa-ellipsis-h" aria-hidden="true"></i><span class="sr-only">{{ text_header_more }}</span></button></li>
+    </ul>
+    <div id="ccp-header-overflow-panel" class="ccp-header-overflow-panel" hidden role="group" aria-label="{{ text_header_more }}">
+      <ul class="nav ccp-header-overflow-items"></ul>
+    </div>
+    {% endif %} </div>
+</header>

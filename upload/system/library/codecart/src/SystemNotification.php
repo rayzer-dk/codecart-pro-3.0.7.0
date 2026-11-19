@@ -1,0 +1,305 @@
+<?php
+namespace CodeCart\Core;
+
+final class SystemNotification {
+    private $registry;
+    private $db;
+    private $tableReady = null;
+
+    public function __construct($registry) { $this->registry=$registry; $this->db = $registry->get('db'); }
+
+    public function notify(string $code, string $severity, string $title, string $message, string $route = ''): void {
+        $code = strtolower(trim($code));
+        if ($code === '' || !preg_match('/^[a-z0-9_.:-]{2,160}$/', $code)) { return; }
+        $severity = in_array($severity, array('info','warning','error','critical'), true) ? $severity : 'warning';
+        $title = substr(trim($title), 0, 190);
+        $message = substr(trim($message), 0, 4000);
+        $route = substr(trim($route), 0, 255);
+        if ($title === '' || $message === '' || !$this->tableExists()) { return; }
+
+        // Atomic upsert avoids the SELECT-then-INSERT race when two requests publish
+        // the same notification code at the same time. The UNIQUE(code) key is the
+        // concurrency guard. Status is evaluated before the mutable fields are
+        // overwritten:
+        // - resolved/archived: the problem came back, so the notice is unread again;
+        // - dismissed: the administrator hid a problem that is still active; it stays
+        //   hidden while the text changes (counts, details) and reopens only when the
+        //   severity rises;
+        // - unread/read: unread again when its content changes.
+        $this->db->query("INSERT INTO `" . DB_PREFIX . "codecart_notification` SET " .
+            "code='" . $this->db->escape($code) . "', " .
+            "severity='" . $this->db->escape($severity) . "', " .
+            "title='" . $this->db->escape($title) . "', " .
+            "message='" . $this->db->escape($message) . "', " .
+            "route='" . $this->db->escape($route) . "', " .
+            "status='unread', date_added=NOW(), date_modified=NOW() " .
+            "ON DUPLICATE KEY UPDATE " .
+            "status=CASE " .
+                "WHEN status IN ('resolved','archived') THEN 'unread' " .
+                "WHEN status='dismissed' THEN IF(FIELD(VALUES(severity),'info','warning','error','critical')>FIELD(severity,'info','warning','error','critical'),'unread','dismissed') " .
+                "WHEN severity<>VALUES(severity) OR title<>VALUES(title) OR message<>VALUES(message) OR route<>VALUES(route) THEN 'unread' " .
+                "ELSE status END, " .
+            "severity=VALUES(severity), title=VALUES(title), message=VALUES(message), route=VALUES(route), date_modified=NOW()");
+    }
+
+    public function resolve(string $code): void {
+        if (!$this->tableExists()) { return; }
+        $code = $this->db->escape(strtolower(trim($code)));
+        // Visible notices move to "resolved". A dismissed one stays out of sight as
+        // "archived": scheduler tasks resolve their notice after every successful run,
+        // and turning a dismissed row into "resolved" brought it back the next day.
+        // Both "resolved" and "archived" reopen in notify() if the problem recurs.
+        $this->db->query("UPDATE `" . DB_PREFIX . "codecart_notification` SET status=IF(status='dismissed','archived','resolved'), date_modified=NOW() WHERE code='" . $code . "' AND status IN ('unread','read','dismissed')");
+    }
+
+    public function unreadCount(): int {
+        if (!$this->tableExists()) { return 0; }
+        $q=$this->db->query("SELECT COUNT(*) AS total FROM `" . DB_PREFIX . "codecart_notification` WHERE status='unread'");
+        return isset($q->row['total']) ? (int)$q->row['total'] : 0;
+    }
+
+    public function latest(int $limit=5): array {
+        if (!$this->tableExists()) { return array(); }
+        $limit=max(1,min(50,$limit));
+        return $this->db->query("SELECT * FROM `" . DB_PREFIX . "codecart_notification` WHERE status IN ('unread','read') ORDER BY FIELD(severity,'critical','error','warning','info'), notification_id DESC LIMIT " . (int)$limit)->rows;
+    }
+
+    // Hidden notices are kept as tombstones so the next cron/preflight pass cannot
+    // recreate them: "dismissed" (problem still active) and "archived" (hidden,
+    // then fixed). The archive tab shows both.
+    private function visibleCondition(string $status = 'all'): string {
+        if ($status === 'dismissed') {
+            return "status IN ('dismissed','archived')";
+        }
+        if (in_array($status, array('unread', 'read', 'resolved'), true)) {
+            return "status='" . $status . "'";
+        }
+        return "status IN ('unread','read','resolved')";
+    }
+
+    public function counts(): array {
+        $counts = array('all' => 0, 'unread' => 0, 'read' => 0, 'resolved' => 0, 'dismissed' => 0);
+        if (!$this->tableExists()) { return $counts; }
+        $rows = $this->db->query("SELECT status, COUNT(*) AS total FROM `" . DB_PREFIX . "codecart_notification` WHERE status IN ('unread','read','resolved','dismissed','archived') GROUP BY status")->rows;
+        foreach ($rows as $row) {
+            $status = (string)$row['status'] === 'archived' ? 'dismissed' : (string)$row['status'];
+            if (isset($counts[$status])) {
+                $counts[$status] += (int)$row['total'];
+                if ($status !== 'dismissed') { $counts['all'] += $counts[$status]; }
+            }
+        }
+        return $counts;
+    }
+
+    public function page(int $page = 1, int $perPage = 50, string $status = 'all'): array {
+        if (!$this->tableExists()) { return array(); }
+        $page = max(1, $page);
+        $perPage = max(1, min(500, $perPage));
+        // OFFSET and LIMIT are always integers. Status is selected exclusively
+        // from the internal whitelist in visibleCondition().
+        $offset = ($page - 1) * $perPage;
+        return $this->db->query("SELECT * FROM `" . DB_PREFIX . "codecart_notification` WHERE " . $this->visibleCondition($status) . " ORDER BY (status='unread') DESC, FIELD(severity,'critical','error','warning','info'), notification_id DESC LIMIT " . (int)$offset . "," . (int)$perPage)->rows;
+    }
+
+    // Historical API retained for compatibility with extensions using it.
+    public function all(int $limit = 100): array {
+        return $this->page(1, max(1, min(500, $limit)), 'all');
+    }
+
+
+    public function present(array $rows): array {
+        $language=$this->registry->has('language')?$this->registry->get('language'):null;
+        if ($language && $this->registry->has('load')) {
+            $loader=$this->registry->get('load');
+            if (is_object($loader) && method_exists($loader,'language')) {
+                // Header notifications are rendered outside tool/notification, so load
+                // the canonical notification translations before presenting DB rows.
+                $loader->language('tool/notification');
+                // Diagnostic strings have their own language pack so they can be
+                // reused by the Scheduler screen without overwriting heading_title.
+                $loader->language('tool/diagnostics');
+            }
+        }
+        foreach($rows as &$row){
+            $code=isset($row['code'])?(string)$row['code']:'';
+            if($language && strpos($code,'scheduler.')===0){
+                $task=substr($code,strlen('scheduler.'));
+                $row['title']=sprintf($language->get('text_notice_cron_failed'),$task);
+                $row['message'] = self::localizeDiagnostic((string)$row['message'], $language);
+            } elseif($language && strpos($code,'health.')===0){
+                $healthKey = substr($code, 7);
+                $titleKey = 'text_health_' . str_replace('.', '_', $healthKey);
+                $messageKey = $titleKey . '_message';
+                $localizedTitle = $language->get($titleKey);
+                $localizedMessage = $language->get($messageKey);
+                // Families with a variable component (PHP extensions, writable paths)
+                // share one phrase: "PHP extension: %s", "Directory: %s".
+                $group = strpos($healthKey, '.') !== false ? substr($healthKey, 0, strpos($healthKey, '.')) : '';
+                if ($localizedTitle === $titleKey && in_array($group, array('ext', 'path'), true) && $language->get('text_health_group_' . $group) !== 'text_health_group_' . $group) {
+                    $localizedTitle = sprintf($language->get('text_health_group_' . $group), substr($healthKey, strlen($group) + 1));
+                    $groupMessage = $language->get('text_health_group_' . $group . '_message');
+                    if ($groupMessage !== 'text_health_group_' . $group . '_message') { $localizedMessage = $groupMessage; $messageKey = ''; }
+                }
+                if ($localizedTitle !== $titleKey) { $row['title'] = $localizedTitle; }
+                elseif (strpos((string)$row['title'],'System check: ')===0) { $row['title']=sprintf($language->get('text_notice_system_check'),substr((string)$row['title'],14)); }
+                if ($localizedMessage !== $messageKey && $localizedMessage !== '') {
+                    $value=$this->healthValue((string)$healthKey,(string)$row['message'],$language);
+                    $row['message']=$value!==''?$value.' — '.$localizedMessage:$localizedMessage;
+                }
+            }
+        }
+        unset($row);
+        return $rows;
+    }
+
+    /**
+     * Human-readable translation of known scheduler/queue diagnostics.
+     * Storage and the protected technical logs keep the original text.
+     * Unknown diagnostics retain their complete technical details, with a
+     * localized label, instead of being silently altered or concealed.
+     */
+    public static function localizeDiagnostic(string $message, $language): string {
+        $message = trim($message);
+        if ($message === '' || !$language || !method_exists($language, 'get')) {
+            return $message;
+        }
+
+        if (preg_match('~^(?:(?:Exception|Error|RuntimeException|InvalidArgumentException):[ ]*)*Could not call[ ]+(/?[a-z0-9_/-]+)!?$~i', $message, $matches)) {
+            return sprintf($language->get('text_diag_controller_unavailable'), $matches[1]);
+        }
+        if (stripos($message, 'URL rejected: No host part in the URL') !== false) {
+            return $language->get('text_diag_invalid_catalog_url');
+        }
+
+        $known = array(
+            'OK' => 'text_diag_ok',
+            'Handler returned false' => 'text_diag_handler_false',
+            'Task failed without details' => 'text_diag_task_failed',
+            'Scheduler is already running.' => 'text_diag_scheduler_locked',
+            'Scheduler task not found.' => 'text_diag_task_not_found',
+            'Invalid scheduler route.' => 'text_diag_invalid_route',
+            'Invalid scheduler code.' => 'text_diag_invalid_code',
+            'Invalid scheduler arguments.' => 'text_diag_invalid_arguments',
+            'Scheduler code already exists.' => 'text_diag_duplicate_code',
+            'Built-in scheduler task code cannot be renamed.' => 'text_diag_core_code_locked',
+            'Built-in scheduler tasks can be disabled, but not deleted.' => 'text_diag_core_delete_locked',
+            'recovered_stale_processing' => 'text_diag_recovered_stale',
+            'stale_processing_attempt_limit' => 'text_diag_attempt_limit'
+        );
+        if (isset($known[$message])) {
+            return $language->get($known[$message]);
+        }
+
+        if (preg_match('~^Invalid scheduler route:[ ]*([a-z0-9_/-]+)[ ]*\\(a controller action is required\\)\\.$~i', $message, $matches)) {
+            return sprintf($language->get('text_diag_invalid_route_detail'), $matches[1]);
+        }
+
+        // The caller may still need the exact provider/SQL/PHP diagnostic.
+        // The technical text is deliberately preserved, not mistranslated.
+        return sprintf($language->get('text_diag_technical_details'), $message);
+    }
+
+    private function healthValue(string $healthKey,string $message,$language): string {
+        $message=trim($message);
+        if ($message==='') { return ''; }
+
+        // New health notices store the diagnostic value on its own first line.
+        if (strpos($message,"\n")!==false) {
+            $parts=explode("\n",$message,2);
+            return $this->translateHealthValue($healthKey,trim($parts[0]),$language);
+        }
+
+        // Backward-compatible extraction for notices written by older builds.
+        if ($healthKey==='db.schema_version' && preg_match('/^((?:\d+\.){2,3}\d+|not recorded)\b/i',$message,$match)) {
+            return $this->translateHealthValue($healthKey,$match[1],$language);
+        }
+        if ($healthKey==='db.strict_sql') {
+            if (stripos($message,'not active ')===0) { return $this->translateHealthValue($healthKey,'not active',$language); }
+            if (stripos($message,'active ')===0) { return $this->translateHealthValue($healthKey,'active',$language); }
+        }
+        if ($healthKey==='path.storage_public') {
+            if (stripos($message,'inside document root ')===0) { return $this->translateHealthValue($healthKey,'inside document root',$language); }
+            if (stripos($message,'outside document root ')===0) { return $this->translateHealthValue($healthKey,'outside document root',$language); }
+        }
+        if ($healthKey==='security.display_errors') {
+            if (preg_match('/^(On|Off)\b/i',$message,$match)) { return $this->translateHealthValue($healthKey,$match[1],$language); }
+        }
+        if ($healthKey==='http.https') {
+            if (stripos($message,'not detected')===0) { return $this->translateHealthValue($healthKey,'not detected',$language); }
+            if (stripos($message,'active')===0) { return $this->translateHealthValue($healthKey,'active',$language); }
+        }
+        if ($healthKey==='db.migration_history' && stripos($message,'no history ')===0) {
+            return $this->translateHealthValue($healthKey,'no history',$language);
+        }
+        return '';
+    }
+
+    private function translateHealthValue(string $healthKey,string $value,$language): string {
+        $map=array(
+            'active'=>'text_health_value_active',
+            'not active'=>'text_health_value_not_active',
+            'inside document root'=>'text_health_value_inside_webroot',
+            'outside document root'=>'text_health_value_outside_webroot',
+            'on'=>'text_health_value_on',
+            'off'=>'text_health_value_off',
+            'not recorded'=>'text_health_value_not_recorded',
+            'no history'=>'text_health_value_no_history',
+            'not detected'=>'text_health_value_not_detected',
+            'enabled'=>'text_health_value_enabled',
+            'disabled'=>'text_health_value_disabled',
+            'loaded'=>'text_health_value_loaded',
+            'missing'=>'text_health_value_missing',
+            'never'=>'text_health_value_never',
+            'not configured'=>'text_health_value_not_configured',
+            'check failed'=>'text_health_value_check_failed'
+        );
+        $normalized=strtolower(trim($value));
+        if (isset($map[$normalized])) {
+            $translated=$language->get($map[$normalized]);
+            if ($translated!==$map[$normalized]) { return $translated; }
+        }
+        return trim($value);
+    }
+    public function markRead(int $id): void {
+        if ($id>0 && $this->tableExists()) $this->db->query("UPDATE `" . DB_PREFIX . "codecart_notification` SET status='read', date_modified=NOW() WHERE notification_id='" . (int)$id . "' AND status='unread'");
+    }
+
+    public function markAllRead(): void {
+        if ($this->tableExists()) $this->db->query("UPDATE `" . DB_PREFIX . "codecart_notification` SET status='read', date_modified=NOW() WHERE status='unread'");
+    }
+
+
+    public function delete(int $id): bool {
+        if ($id <= 0 || !$this->tableExists()) { return false; }
+        // A hard DELETE allows the next health/queue poll to reinsert the row
+        // immediately. Keep a tombstone: an already resolved notice is archived,
+        // an active one is dismissed until it is resolved.
+        $this->db->query("UPDATE `" . DB_PREFIX . "codecart_notification` SET status=IF(status='resolved','archived','dismissed'), date_modified=NOW() WHERE notification_id='" . (int)$id . "' AND status IN ('unread','read','resolved')");
+        return (int)$this->db->countAffected() > 0;
+    }
+
+    public function deleteReadAndResolved(): void {
+        if ($this->tableExists()) {
+            // Bulk clear must also survive recurring notices from background jobs.
+            $this->db->query("UPDATE `" . DB_PREFIX . "codecart_notification` SET status=IF(status='resolved','archived','dismissed'), date_modified=NOW() WHERE status IN ('read','resolved')");
+        }
+    }
+
+    public function cleanup(int $days = 30): int {
+        $days = max(1, min(3650, $days));
+        if (!$this->tableExists()) { return 0; }
+        // Archived tombstones belong to problems that are already fixed; a recurrence
+        // creates a new notice, so they can expire with the rest of the history.
+        $this->db->query("DELETE FROM `" . DB_PREFIX . "codecart_notification` WHERE status IN ('resolved','archived') AND date_modified < DATE_SUB(NOW(), INTERVAL " . (int)$days . " DAY)");
+        return (int)$this->db->countAffected();
+    }
+
+    private function tableExists(): bool {
+        if ($this->tableReady !== null) { return $this->tableReady; }
+        try {
+            $q=$this->db->query("SHOW TABLES LIKE '" . $this->db->escape(DB_PREFIX . "codecart_notification") . "'");
+            $this->tableReady=(bool)$q->num_rows;
+        } catch (\Throwable $e) { $this->tableReady=false; }
+        return $this->tableReady;
+    }
+}

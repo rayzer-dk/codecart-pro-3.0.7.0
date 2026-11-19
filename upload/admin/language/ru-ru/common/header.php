@@ -1,0 +1,86 @@
+<?php
+// CodeCart PRO ru-ru language pack. Missing keys fall back to en-gb.
+$_['heading_title'] = 'CodeCart PRO';
+$_['text_profile'] = 'Ваш профиль';
+$_['text_store'] = 'Магазины';
+$_['text_help'] = 'Помощь';
+$_['text_homepage'] = 'Сайт проекта';
+$_['text_support'] = 'Форум поддержки';
+$_['text_documentation'] = 'Документация';
+$_['text_logout'] = 'Выход';
+$_['text_search_options'] = 'Параметры поиска';
+$_['text_new'] = 'Добавить';
+$_['text_new_category'] = 'Категорию';
+$_['text_new_customer'] = 'Покупателя';
+$_['text_new_download'] = 'Загрузку';
+$_['text_new_manufacturer'] = 'Производителя';
+$_['text_new_product'] = 'Товар';
+$_['text_system_notifications'] = 'Системные уведомления';
+$_['text_no_system_notifications'] = 'Важных сообщений нет';
+$_['text_all_system_notifications'] = 'Все уведомления';
+$_['text_notice_cron_failed'] = 'Ошибка Cron: %s';
+$_['text_notice_handler_false'] = 'Обработчик задания вернул ошибку без пояснения.';
+$_['text_notice_system_check'] = 'Проверка системы: %s';
+$_['text_notice_invalid_catalog_url'] = 'Не удалось определить полный URL магазина для ручного запуска Cron. Обновите сборку и повторите запуск.';
+$_['text_admin_theme'] = 'Тема админки';
+$_['text_admin_language'] = 'Язык админпанели';
+$_['text_admin_lang_uk'] = 'Українська';
+$_['text_admin_lang_ru'] = 'Русский';
+$_['text_admin_lang_en'] = 'English';
+$_['text_admin_theme_toggle'] = 'Переключить светлую/тёмную тему админки';
+$_['text_refresh_modifications'] = 'Обновить модификаторы';
+$_['text_refresh_modifications_clean'] = 'Кеш модификаторов актуален.';
+$_['text_refresh_modifications_pending'] = 'Модификаторы изменены: требуется обновить кеш OCMOD.';
+$_['text_refresh_modifications_issues'] = 'Кеш OCMOD обновлён, но обнаружены проблемы совместимости.';
+$_['text_logged'] = 'Вы вошли как %s';
+
+$_['text_project_support_header'] = 'Поддержка проекта';
+$_['text_telegram_forum'] = 'Форум Telegram';
+
+// CodeCart PRO: aligned locale keys
+$_['ui_action'] = 'Действие';
+$_['ui_add'] = 'Добавить';
+$_['ui_anchor_choose'] = '— выберите якорь —';
+$_['ui_anchor_help'] = 'После выбора URL заполнится автоматически. Поддерживаются кириллица, латиница и цифры.';
+$_['ui_anchor_insert'] = 'Вставить якорь';
+$_['ui_anchor_name'] = 'Название якоря';
+$_['ui_anchor_on_page'] = 'Якорь на этой странице';
+$_['ui_back'] = 'Назад';
+$_['ui_close'] = 'Закрыть';
+$_['ui_collapse'] = 'Свернуть';
+$_['ui_continue'] = 'Продолжить';
+$_['ui_copy'] = 'Копировать';
+$_['ui_delete'] = 'Удалить';
+$_['ui_download'] = 'Скачать';
+$_['ui_edit'] = 'Редактировать';
+$_['ui_expand'] = 'Развернуть';
+$_['ui_filter'] = 'Фильтр';
+$_['ui_link_help'] = 'URL: https://, http://, mailto:, tel:, относительный путь или #имя-якоря.';
+$_['ui_link_type'] = 'Тип ссылки';
+$_['ui_next'] = 'Далее';
+$_['ui_open'] = 'Открыть';
+$_['ui_previous'] = 'Назад';
+$_['ui_refresh'] = 'Обновить';
+$_['ui_remove'] = 'Убрать';
+$_['ui_save'] = 'Сохранить';
+$_['ui_search'] = 'Поиск';
+$_['ui_select_date'] = 'Выбрать дату';
+$_['ui_select_image'] = 'Выбрать изображение';
+$_['ui_toc_build'] = 'Создать оглавление из H2/H3';
+$_['ui_toc_need_headings'] = 'Для оглавления необходимы заголовки H2 или H3.';
+$_['ui_toc_title'] = 'Оглавление';
+$_['ui_upload'] = 'Загрузить';
+$_['ui_video_help'] = 'Поддерживаются YouTube, Vimeo, Facebook Video, Instagram, Dailymotion, Google Drive и прямые ссылки на MP4/M4V/WebM/Ogg.';
+$_['ui_view'] = 'Просмотреть';
+$_['text_two_factor'] = 'Двухфакторная проверка';
+$_['ui_request_failed'] = 'Запрос не выполнен';
+$_['ui_quick_nav'] = 'Быстрая навигация';
+$_['ui_quick_nav_placeholder'] = 'Перейти на страницу (меню, настройки, расширения)';
+$_['ui_quick_nav_empty'] = 'Ничего не найдено';
+$_['ui_session_expired'] = 'Сессия истекла. Войдите снова.';
+
+$_['ui_image_spacing'] = 'Отступы изображения';
+$_['ui_image_spacing_horizontal'] = 'Горизонтальный отступ (пкс)';
+$_['ui_image_spacing_vertical'] = 'Вертикальный отступ (пкс)';
+
+$_['text_header_more'] = 'Другие действия';

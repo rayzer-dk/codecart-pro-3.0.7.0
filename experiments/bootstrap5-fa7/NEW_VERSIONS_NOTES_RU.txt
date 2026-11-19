@@ -1,0 +1,7 @@
+CodeCart PRO 3.0.6 experimental generation migrations
+CodeMirror 6: active on admin design/theme Twig editor and marketplace/modification_form XML editor; switch ?ccp_cm6=0 falls back to CodeMirror 5. Old CodeMirror 5 intentionally still installed for Summernote's codeview integration.
+jQuery 4.1.0 + Migrate 4.0.2: preview only with ccp_jquery4=1, default stays 3.8.0 / 3.6.0 until installed themes/extensions pass full E2E.
+Flot 4.2.6: new standalone npm distribution under upload/admin/view/javascript/codecart-modern/flot-4.2.6 to avoid mixing 0.8.1 plugins. Legacy Flot files are retained until usage audit.
+Moment 2.31.0: legacy format fallback; Day.js remains the new calendar engine.
+jQVMap 1.5.1: updated old JS+CSS; maps need browser checks.
+Symfony 7 needs PHP>=8.2, so do not replace Symfony Filesystem 6.4 in this branch: CodeCart minimum PHP 8.1.

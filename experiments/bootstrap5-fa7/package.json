@@ -1,0 +1,27 @@
+{
+  "name": "codecart-modernization-pilot",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Isolated UI compatibility experiments; not production vendor dependencies",
+  "scripts": {
+    "build:vendor": "node tools/build-vendor.cjs",
+    "test": "node tools/check-preview.cjs"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "7.3.1",
+    "air-datepicker": "3.6.0",
+    "bootstrap": "5.3.9",
+    "dayjs": "1.11.23",
+    "jquery": "4.1.0",
+    "jquery-migrate": "4.0.2",
+    "summernote": "0.9.1",
+    "flot": "4.2.6"
+  },
+  "devDependencies": {
+    "@codemirror/state": "^6.0.0",
+    "@codemirror/view": "^6.0.0",
+    "esbuild": "^0.25.0",
+    "@playwright/test": "1.65.1",
+    "@codemirror/lang-xml": "^6.1.0"
+  }
+}

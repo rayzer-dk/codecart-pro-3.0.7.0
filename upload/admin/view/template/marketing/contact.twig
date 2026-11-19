@@ -1,0 +1,472 @@
+{{ header }}{{ column_left }}
+<div id="content">
+  <div class="page-header">
+    <div class="container-fluid">
+      <div class="pull-right">
+        <button id="button-send" data-loading-text="{{ text_loading }}" data-toggle="tooltip" title="{{ button_send }}" class="btn btn-primary" onclick="send('index.php?route=marketing/contact/send&user_token={{ user_token }}');"><i class="fa fa-envelope"></i></button>
+        <a href="{{ cancel }}" data-toggle="tooltip" title="{{ button_cancel }}" class="btn btn-default"><i class="fa fa-reply"></i></a></div>
+      <h1>{{ heading_title }}</h1>
+      <ul class="breadcrumb">
+        {% for breadcrumb in breadcrumbs %}
+        <li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="container-fluid">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title"><i class="fa fa-envelope"></i> {{ heading_title }}</h3>
+      </div>
+      <div class="panel-body">
+        <form class="form-horizontal">
+          <div class="form-group">
+            <label class="col-sm-2 control-label" for="input-store">{{ entry_store }}</label>
+            <div class="col-sm-10">
+              <select name="store_id" id="input-store" class="form-control">
+                <option value="0">{{ text_default }}</option>               
+                {% for store in stores %}
+                <option value="{{ store.store_id }}">{{ store.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-2 control-label" for="input-to">{{ entry_to }}</label>
+            <div class="col-sm-10">
+              <select name="to" id="input-to" class="form-control">
+                <option value="newsletter">{{ text_newsletter }}</option>
+                <option value="customer_all">{{ text_customer_all }}</option>
+                <option value="customer_group">{{ text_customer_group }}</option>
+                <option value="customer">{{ text_customer }}</option>
+                <option value="affiliate_all">{{ text_affiliate_all }}</option>
+                <option value="affiliate">{{ text_affiliate }}</option>
+                <option value="product">{{ text_product }}</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group to" id="to-customer-group">
+            <label class="col-sm-2 control-label" for="input-customer-group">{{ entry_customer_group }}</label>
+            <div class="col-sm-10">
+              <select name="customer_group_id" id="input-customer-group" class="form-control">
+                {% for customer_group in customer_groups %}
+                <option value="{{ customer_group.customer_group_id }}">{{ customer_group.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="form-group to" id="to-customer">
+            <label class="col-sm-2 control-label" for="input-customer"><span data-toggle="tooltip" title="{{ help_customer }}">{{ entry_customer }}</span></label>
+            <div class="col-sm-10">
+              <input type="text" name="customers" value="" placeholder="{{ entry_customer }}" id="input-customer" class="form-control" />
+              <div class="well well-sm" style="height: 150px; overflow: auto;"></div>
+            </div>
+          </div>
+          <div class="form-group to" id="to-affiliate">
+            <label class="col-sm-2 control-label" for="input-affiliate"><span data-toggle="tooltip" title="{{ help_affiliate }}">{{ entry_affiliate }}</span></label>
+            <div class="col-sm-10">
+              <input type="text" name="affiliates" value="" placeholder="{{ entry_affiliate }}" id="input-affiliate" class="form-control" />
+              <div class="well well-sm" style="height: 150px; overflow: auto;"></div>
+            </div>
+          </div>
+          <div class="form-group to" id="to-product">
+            <label class="col-sm-2 control-label" for="input-product"><span data-toggle="tooltip" title="{{ help_product }}">{{ entry_product }}</span></label>
+            <div class="col-sm-10">
+              <input type="text" name="products" value="" placeholder="{{ entry_product }}" id="input-product" class="form-control" />
+              <div class="well well-sm" style="height: 150px; overflow: auto;"></div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-2 control-label" for="input-mail-template">{{ entry_template }}</label>
+            <div class="col-sm-10">
+              <div class="row">
+                <div class="col-sm-5">
+                  <select name="template_id" id="input-mail-template" class="form-control">
+                    <option value="">{{ text_template_new }}</option>
+                    {% for template_id, template in mail_templates %}
+                    <option value="{{ template_id|escape }}" data-built-in="{{ template.built_in ? '1' : '0' }}">{{ template.name|escape }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="col-sm-4">
+                  <input type="text" name="template_name" value="" placeholder="{{ entry_template_name }}" id="input-template-name" class="form-control" />
+                </div>
+                <div class="col-sm-3">
+                  <button type="button" id="button-template-load" class="btn btn-default" data-toggle="tooltip" title="{{ button_template_load }}"><i class="fa fa-folder-open"></i></button>
+                  <button type="button" id="button-template-upload" class="btn btn-default" data-toggle="tooltip" title="{{ button_template_upload }}"><i class="fa fa-upload"></i></button>
+                  <button type="button" id="button-template-save" class="btn btn-primary" data-toggle="tooltip" title="{{ button_template_save }}"><i class="fa fa-save"></i></button>
+                  <button type="button" id="button-template-preview" class="btn btn-info" data-toggle="tooltip" title="{{ button_template_preview }}"><i class="fa fa-eye"></i></button>
+                  <button type="button" id="button-template-delete" class="btn btn-danger" data-toggle="tooltip" title="{{ button_template_delete }}"><i class="fa fa-trash"></i></button>
+                </div>
+              </div>
+              <input type="file" id="input-template-file" accept=".html,.htm,text/html" class="hidden" />
+              <p class="help-block">{{ help_template_open }}</p>
+              <p class="help-block">{{ help_template_variables }}</p>
+              <p class="help-block"><i class="fa fa-paint-brush"></i> {{ help_template_branded }}</p>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-2 control-label">{{ text_template_settings }}</label>
+            <div class="col-sm-10">
+              <div class="row">
+                <div class="col-sm-4"><label class="control-label" for="input-header-color">{{ entry_header_color }}</label>
+                  <input type="color" id="input-header-color" name="header_color" value="{{ header_color }}" data-default="#102d56" class="form-control" style="height:38px;padding:3px;" /></div>
+                <div class="col-sm-4"><label class="control-label" for="input-button-color">{{ entry_button_color }}</label>
+                  <input type="color" id="input-button-color" name="button_color" value="{{ button_color }}" data-default="#0969da" class="form-control" style="height:38px;padding:3px;" /></div>
+                <div class="col-sm-4" style="padding-top:25px;">
+                  <button type="button" id="button-brand-save" class="btn btn-primary"><i class="fa fa-save"></i> {{ button_brand_save }}</button>
+                  <button type="button" id="button-brand-reset" class="btn btn-default" data-toggle="tooltip" title="{{ button_brand_reset }}"><i class="fa fa-undo"></i></button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="form-group required">
+            <label class="col-sm-2 control-label" for="input-subject">{{ entry_subject }}</label>
+            <div class="col-sm-10">
+              <input type="text" name="subject" value="" placeholder="{{ entry_subject }}" id="input-subject" class="form-control" />
+            </div>
+          </div>
+          <div class="form-group required">
+            <label class="col-sm-2 control-label" for="input-message">{{ entry_message }}</label>
+            <div class="col-sm-10">
+              <textarea name="message" placeholder="{{ entry_message }}" id="input-message" data-toggle="summernote" data-lang="{{ summernote }}" class="form-control"></textarea>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div class="panel panel-default">
+      <div class="panel-heading"><h3 class="panel-title"><i class="fa fa-history"></i> {{ text_campaign_history }}</h3></div>
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover" style="border-top:3px solid #0057d9;margin-bottom:0;">
+          <thead><tr><td>{{ column_campaign }}</td><td>{{ column_audience }}</td><td>{{ column_progress }}</td><td>{{ column_status }}</td><td>{{ column_date_added }}</td></tr></thead>
+          <tbody>{% if recent_campaigns %}{% for campaign in recent_campaigns %}<tr><td>#{{ campaign.campaign_id }} — {{ campaign.subject }}</td><td>{{ campaign.audience }}</td><td>{{ campaign.sent }}/{{ campaign.total }}{% if campaign.failed %} · failed {{ campaign.failed }}{% endif %}{% if campaign.suppressed %} · suppressed {{ campaign.suppressed }}{% endif %}</td><td>{% if campaign.status == 'queued' %}<span class="label label-warning">{{ text_campaign_queued_status }}</span>{% elseif campaign.status == 'sending' %}<span class="label label-info">{{ text_campaign_sending }}</span>{% elseif campaign.status == 'completed' %}<span class="label label-success">{{ text_campaign_completed }}</span>{% else %}<span class="label label-default">{{ text_campaign_empty }}</span>{% endif %}</td><td>{{ campaign.date_added }}</td></tr>{% endfor %}{% else %}<tr><td colspan="5" class="text-center">{{ text_no_results }}</td></tr>{% endif %}</tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="modal fade" id="modal-mail-preview" tabindex="-1" role="dialog" aria-labelledby="mail-preview-title">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="{{ button_close }}"><span aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title" id="mail-preview-title">{{ text_template_preview }}</h4>
+        </div>
+        <div class="modal-body">
+          <div class="text-right" style="margin-bottom:12px" role="group" aria-label="{{ text_preview_device }}"><button type="button" class="btn btn-primary btn-sm" id="mail-preview-desktop" title="{{ text_preview_desktop }}"><i class="fa fa-desktop"></i> {{ text_preview_desktop }}</button> <button type="button" class="btn btn-default btn-sm" id="mail-preview-mobile" title="{{ text_preview_mobile }}"><i class="fa fa-mobile"></i> {{ text_preview_mobile }}</button></div>
+          <div style="width:100%;overflow-x:auto;text-align:center"><iframe id="mail-preview-frame" title="{{ text_template_preview }}" sandbox="" style="display:inline-block;max-width:100%;width:100%;height:580px;border:1px solid #dde5ef;border-radius:7px;background:#fff;vertical-align:top;"></iframe></div>
+        </div>
+      </div>
+    </div>
+  </div>
+<script type="text/javascript"><!--
+$('select[name=\'to\']').on('change', function() {
+	$('.to').hide();
+
+	$('#to-' + this.value.replace('_', '-')).show();
+});
+
+$('select[name=\'to\']').trigger('change');
+//--></script> 
+  <script type="text/javascript"><!--
+function mailTemplateAlert(type, message) {
+	$('.mail-template-alert').remove();
+	$('#content > .container-fluid').prepend('<div class="mail-template-alert alert alert-' + type + ' alert-dismissible"><i class="fa fa-' + (type === 'success' ? 'check-circle' : 'exclamation-circle') + '"></i> ' + $('<div>').text(message).html() + ' <button type="button" class="close" data-dismiss="alert">&times;</button></div>');
+}
+
+function currentMailHtml() {
+	if ($('#input-message').next('.note-editor').length && typeof $('#input-message').summernote === 'function') {
+		return $('#input-message').summernote('code');
+	}
+	return $('#input-message').val();
+}
+
+function setMailHtml(html) {
+	$('#input-message').val(html);
+	if ($('#input-message').data('summernote') && typeof $('#input-message').summernote === 'function') {
+		$('#input-message').summernote('code', html);
+	}
+}
+
+function updateMailPresetActions() {
+    var builtIn = $('#input-mail-template option:selected').attr('data-built-in') === '1';
+    $('#button-template-delete').prop('disabled', builtIn || !$('#input-mail-template').val());
+    $('#button-template-save').attr('title', builtIn ? "{{ text_template_save_copy|escape('js') }}" : "{{ button_template_save|escape('js') }}");
+}
+$('#input-mail-template').on('change', function() {
+    updateMailPresetActions();
+    if ($(this).val()) { $('#button-template-load').trigger('click'); }
+});
+$('#button-template-load').on('click', function() {
+	var templateId = $('#input-mail-template').val();
+	if (!templateId) { $('#input-template-file').val('').trigger('click'); return; }
+	$.getJSON('{{ template_load_url }}&template_id=' + encodeURIComponent(templateId), function(json) {
+		if (json.error) { mailTemplateAlert('danger', json.error); return; }
+		$('#input-template-name').val(json.template.name || '');
+		$('#input-subject').val(json.template.subject || '');
+		setMailHtml(json.template.message || '');
+	}).fail(function() { mailTemplateAlert('danger', '{{ error_template_not_found|escape('js') }}'); });
+});
+
+$('#button-template-upload').on('click', function() {
+	$('#input-template-file').val('').trigger('click');
+});
+
+$('#button-brand-save').on('click', function() {
+	$.ajax({
+		url: '{{ brand_save_url }}', type: 'post', dataType: 'json',
+		data: {header_color: $('#input-header-color').val(), button_color: $('#input-button-color').val()},
+		success: function(json) { mailTemplateAlert(json.error ? 'danger' : 'success', json.error || json.success); },
+		error: function(xhr, ajaxOptions, thrownError) { CodeCartAdmin.ajaxError(xhr, thrownError); }
+	});
+});
+
+$('#button-brand-reset').on('click', function() {
+	$('#input-header-color, #input-button-color').each(function() { $(this).val($(this).attr('data-default')); });
+});
+
+$('#input-template-file').on('change', function() {
+	var file = this.files && this.files[0];
+	if (!file) { return; }
+	if (!/\.html?$/i.test(file.name)) { mailTemplateAlert('danger', '{{ error_template_file|escape('js') }}'); return; }
+	if (!file.size || file.size > 1000000) { mailTemplateAlert('danger', '{{ error_template_size|escape('js') }}'); return; }
+	var data = new FormData();
+	data.append('template_file', file);
+	$.ajax({
+		url: '{{ template_import_url|escape('js') }}',
+		type: 'post',
+		dataType: 'json',
+		data: data,
+		processData: false,
+		contentType: false,
+		beforeSend: function() { $('#button-template-load').prop('disabled', true); },
+		complete: function() { $('#button-template-load').prop('disabled', false); $('#input-template-file').val(''); },
+		success: function(json) {
+			if (json.error) { mailTemplateAlert('danger', json.error); return; }
+			$('#input-template-name').val(json.template.name || '');
+			setMailHtml(json.template.message || '');
+			mailTemplateAlert('success', json.success);
+		},
+		error: function() { mailTemplateAlert('danger', '{{ error_template_import|escape('js') }}'); }
+	});
+});
+
+$('#button-template-save').on('click', function() {
+	$.ajax({
+		url: '{{ template_save_url }}',
+		type: 'post',
+		dataType: 'json',
+		data: {
+			template_id: $('#input-mail-template').val(),
+			template_name: $('#input-template-name').val(),
+			subject: $('#input-subject').val(),
+			message: currentMailHtml()
+		},
+		success: function(json) {
+			if (json.error) { mailTemplateAlert('danger', json.error); return; }
+			var tpl = json.template;
+			var option = $('#input-mail-template option[value="' + tpl.id + '"]');
+			if (option.length) { option.text(tpl.name); } else { $('#input-mail-template').append($('<option>', {value: tpl.id, text: tpl.name})); }
+			$('#input-mail-template').val(tpl.id);
+            updateMailPresetActions();
+			mailTemplateAlert('success', json.success);
+		}
+	});
+});
+
+$('#button-template-delete').on('click', function() {
+	var templateId = $('#input-mail-template').val();
+	if (!templateId || !confirm('{{ text_confirm }}')) { return; }
+	$.ajax({
+		url: '{{ template_delete_url }}',
+		type: 'post',
+		dataType: 'json',
+		data: {template_id: templateId},
+		success: function(json) {
+			if (json.error) { mailTemplateAlert('danger', json.error); return; }
+			$('#input-mail-template option[value="' + templateId + '"]').remove();
+			$('#input-mail-template').val('');
+            updateMailPresetActions();
+			$('#input-template-name').val('');
+			mailTemplateAlert('success', json.success);
+		}
+	});
+});
+
+$('#button-template-preview').on('click', function() {
+    var $button = $(this);
+    $button.prop('disabled', true);
+    $.ajax({
+        url: "{{ template_preview_url|escape('js') }}",
+        type: 'POST', dataType: 'json',
+        data: {store_id: $('#input-store').val(), subject: $('#input-subject').val(), message: currentMailHtml(), header_color: $('#input-header-color').val(), button_color: $('#input-button-color').val()}
+    }).done(function(json) {
+        if (json && json.html) {
+            document.getElementById('mail-preview-frame').srcdoc = json.html;
+            $('#mail-preview-desktop').trigger('click');
+            $('#modal-mail-preview').modal('show');
+        } else { mailTemplateAlert('danger', json.error || "{{ error_template_html|escape('js') }}"); }
+    }).fail(function() { mailTemplateAlert('danger', "{{ error_template_html|escape('js') }}"); })
+      .always(function() { $button.prop('disabled', false); });
+});
+$('#mail-preview-mobile').on('click', function() {
+    $('#mail-preview-frame').css('width', '375px');
+    $('#mail-preview-mobile').removeClass('btn-default').addClass('btn-primary');
+    $('#mail-preview-desktop').removeClass('btn-primary').addClass('btn-default');
+});
+$('#mail-preview-desktop').on('click', function() {
+    $('#mail-preview-frame').css('width', '100%');
+    $('#mail-preview-desktop').removeClass('btn-default').addClass('btn-primary');
+    $('#mail-preview-mobile').removeClass('btn-primary').addClass('btn-default');
+});
+$(function() {
+    if ($('#input-mail-template option[value="builtin_news"]').length) {
+        $('#input-mail-template').val('builtin_news').trigger('change');
+    } else { updateMailPresetActions(); }
+});
+
+// Customers
+$('input[name=\'customers\']').autocomplete({
+	'source': function(request, response) {
+		$.ajax({
+			url: 'index.php?route=customer/customer/autocomplete&user_token={{ user_token }}&filter_name=' +  encodeURIComponent(request),
+			dataType: 'json',
+			success: function(json) {
+				response($.map(json, function(item) {
+					return {
+						label: item['name'],
+						value: item['customer_id']
+					}
+				}));
+			},
+			error: function(xhr, ajaxOptions, thrownError) {
+				CodeCartAdmin.ajaxError(xhr, thrownError);
+			}
+		});
+	},
+	'select': function(item) {
+		$('input[name=\'customers\']').val('');
+
+		$('#customer' + item['value']).remove();
+
+		$('#input-customer').parent().find('.well').append('<div id="customer' + item['value'] + '"><i class="fa fa-minus-circle"></i> ' + item['label'] + '<input type="hidden" name="customer[]" value="' + item['value'] + '" /></div>');
+	}
+});
+
+$('#input-customer').parent().find('.well').delegate('.fa-minus-circle', 'click', function() {
+	$(this).parent().remove();
+});
+
+// Affiliates
+$('input[name=\'affiliates\']').autocomplete({
+	'source': function(request, response) {
+		$.ajax({
+			url: 'index.php?route=customer/customer/autocomplete&user_token={{ user_token }}&filter_name=' +  encodeURIComponent(request) + '&filter_affiliate=1',
+			dataType: 'json',
+			success: function(json) {
+				response($.map(json, function(item) {
+					return {
+						label: item['name'],
+						value: item['customer_id']
+					}
+				}));
+			},
+			error: function(xhr, ajaxOptions, thrownError) {
+				CodeCartAdmin.ajaxError(xhr, thrownError);
+			}
+		});
+	},
+	'select': function(item) {
+		$('input[name=\'affiliates\']').val('');
+
+		$('#affiliate' + item['value']).remove();
+
+		$('#input-affiliate').parent().find('.well').append('<div id="affiliate' + item['value'] + '"><i class="fa fa-minus-circle"></i> ' + item['label'] + '<input type="hidden" name="affiliate[]" value="' + item['value'] + '" /></div>');
+	}
+});
+
+$('#input-affiliate').parent().find('.well').delegate('.fa-minus-circle', 'click', function() {
+	$(this).parent().remove();
+});
+
+// Products
+$('input[name=\'products\']').autocomplete({
+	'source': function(request, response) {
+		$.ajax({
+			url: 'index.php?route=catalog/product/autocomplete&user_token={{ user_token }}&filter_name=' +  encodeURIComponent(request),
+			dataType: 'json',
+			success: function(json) {
+				response($.map(json, function(item) {
+					return {
+						label: item['name'],
+						value: item['product_id']
+					}
+				}));
+			},
+			error: function(xhr, ajaxOptions, thrownError) {
+				CodeCartAdmin.ajaxError(xhr, thrownError);
+			}
+		});
+	},
+	'select': function(item) {
+		$('input[name=\'products\']').val('');
+
+		$('#product' + item['value']).remove();
+
+		$('#input-product').parent().find('.well').append('<div id="product' + item['value'] + '"><i class="fa fa-minus-circle"></i> ' + item['label'] + '<input type="hidden" name="product[]" value="' + item['value'] + '" /></div>');
+	}
+});
+
+$('#input-product').parent().find('.well').delegate('.fa-minus-circle', 'click', function() {
+	$(this).parent().remove();
+});
+
+function send(url) {
+    $('#input-message').val(currentMailHtml());
+	$.ajax({
+		url: url,
+		type: 'post',
+		data: $('#content select, #content input, #content textarea'),
+		dataType: 'json',
+		beforeSend: function() {
+			$('#button-send').button('loading');
+		},
+		success: function(json) {
+			$('.alert-dismissible, .text-danger').remove();
+
+			if (json['error']) {
+				if (json['error']['warning']) {
+					$('#content > .container-fluid').prepend('<div class="alert alert-danger alert-dismissible"><i class="fa fa-exclamation-circle"></i> ' + json['error']['warning'] + ' <button type="button" class="close" data-dismiss="alert">&times;</button></div>');
+				}
+
+				if (json['error']['email']) {
+					$('#content > .container-fluid').prepend('<div class="alert alert-danger alert-dismissible"><i class="fa fa-exclamation-circle"></i> ' + json['error']['email'] + ' <button type="button" class="close" data-dismiss="alert">&times;</button></div>');
+				}
+
+				if (json['error']['subject']) {
+					$('input[name=\'subject\']').after('<div class="text-danger">' + json['error']['subject'] + '</div>');
+				}
+
+				if (json['error']['message']) {
+					$('textarea[name=\'message\']').parent().append('<div class="text-danger">' + json['error']['message'] + '</div>');
+				}
+			}
+
+			if (json['success']) {
+				$('#content > .container-fluid').prepend('<div class="alert alert-success alert-dismissible"><i class="fa fa-check-circle"></i>  ' + json['success'] + ' <button type="button" class="close" data-dismiss="alert">&times;</button></div>');
+			}
+				
+			if (json['next']) {
+				send(json['next']);
+			} else {
+				$('#button-send').button('reset');
+			}
+			
+		},
+		error: function(xhr, ajaxOptions, thrownError) {
+			CodeCartAdmin.ajaxError(xhr, thrownError);
+		}
+	});
+}
+//--></script></div>
+{{ footer }}

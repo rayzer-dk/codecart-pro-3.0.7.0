@@ -1,0 +1,6 @@
+/* CodeCart PRO CodeMirror 6 editor, opt-out with ?ccp_cm6=0 on supported admin forms. */
+.ccp-cm6-wrapper{height:420px;min-height:210px;border:1px solid var(--bs-border-color,#ced4da);border-radius:6px;overflow:hidden;background:var(--bs-body-bg,#fff)}
+.ccp-cm6-wrapper .cm-editor{height:100%;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px}
+.ccp-cm6-wrapper .cm-scroller{overflow:auto}
+.ccp-cm6-wrapper .cm-focused{outline:2px solid var(--bs-primary,#0d6efd);outline-offset:-2px}
+.ccp-cm6-wrapper .cm-gutters{border-right:1px solid var(--bs-border-color,#ced4da)}

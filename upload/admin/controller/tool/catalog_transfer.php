@@ -1,0 +1,300 @@
+<?php
+class ControllerToolCatalogTransfer extends Controller {
+    public function export() {
+        $this->load->language('tool/backup');
+
+        if ($this->request->server['REQUEST_METHOD'] !== 'POST') {
+            $this->sendExportError($this->language->get('error_catalog_export'), 405);
+            return;
+        }
+
+        if (!$this->user->hasPermission('modify', 'tool/backup')) {
+            $this->sendExportError($this->language->get('error_permission'), 403);
+            return;
+        }
+
+        if (!isset($this->request->post['catalog_export_format']) || (string)$this->request->post['catalog_export_format'] !== 'xlsx') {
+            $this->sendExportError($this->language->get('error_catalog_export'), 400);
+            return;
+        }
+
+        $entities = isset($this->request->post['catalog_entities']) && is_array($this->request->post['catalog_entities'])
+            ? array_values(array_intersect(array('products', 'categories', 'manufacturers', 'options', 'attributes', 'filters'), $this->request->post['catalog_entities']))
+            : array();
+        $portable = !empty($this->request->post['portable']);
+
+        if (!$entities) {
+            $this->sendExportError($this->language->get('error_catalog_entities'), 400);
+            return;
+        }
+
+        $tmp = tempnam(DIR_UPLOAD, 'ccpexport_');
+        if (!$tmp) {
+            $this->sendExportError($this->language->get('error_catalog_export'), 500);
+            return;
+        }
+
+        $filename = 'codecart_catalog_' . date('Y-m-d_H-i-s') . ($portable ? '.zip' : '.xlsx');
+        $path = $tmp . ($portable ? '.zip' : '.xlsx');
+        @unlink($tmp);
+        $display_errors = ini_get('display_errors');
+        @ini_set('display_errors', '0');
+
+        try {
+            $transfer = new \CodeCart\Core\CatalogTransfer($this->registry);
+            $progress = $this->operationWriter();
+            $progress(array('stage'=>'preparing','total'=>0,'processed'=>0,'success'=>0,'skipped'=>0,'issues'=>array(),'percent'=>2));
+            $exportResult = $transfer->onProgress($progress)->export($entities, $path, $portable);
+            $this->saveIssuesCsv(isset($exportResult['issues']) ? $exportResult['issues'] : array());
+            $progress(array('stage'=>'done','percent'=>100,'total'=>(int)(isset($exportResult['products']['total'])?$exportResult['products']['total']:0),
+                'processed'=>(int)(isset($exportResult['products']['processed'])?$exportResult['products']['processed']:0),
+                'success'=>(int)(isset($exportResult['products']['success'])?$exportResult['products']['success']:0),
+                'skipped'=>(int)(isset($exportResult['products']['skipped'])?$exportResult['products']['skipped']:0),
+                'issues'=>isset($exportResult['issues'])?$exportResult['issues']:array()));
+
+            if (!is_file($path) || (int)filesize($path) < 32) {
+                throw new \RuntimeException($this->language->get('error_catalog_export'));
+            }
+
+            if (!$portable) {
+                $check = new \ZipArchive();
+                $opened = $check->open($path);
+                if ($opened !== true || $check->locateName('xl/workbook.xml') === false || $check->locateName('[Content_Types].xml') === false) {
+                    if ($opened === true) {
+                        $check->close();
+                    }
+                    throw new \RuntimeException('Generated XLSX archive is incomplete.');
+                }
+                $check->close();
+            }
+
+            while (ob_get_level() > 0) { @ob_end_clean(); }
+            $this->response->addHeader('Pragma: public');
+            $this->response->addHeader('Expires: 0');
+            $this->response->addHeader('Cache-Control: no-store, no-cache, must-revalidate');
+            $this->response->addHeader('Content-Type: ' . ($portable ? 'application/zip' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'));
+            $this->response->addHeader('X-CodeCart-Export: ' . ($portable ? 'catalog-zip' : 'catalog-xlsx'));
+            $this->response->addHeader('Content-Disposition: attachment; filename="' . $filename . '"');
+            $this->response->addHeader('Content-Length: ' . (int)filesize($path));
+            $this->response->addHeader('X-Content-Type-Options: nosniff');
+            $this->response->setFile($path, true);
+            $path = ''; // Response owns cleanup after streaming.
+        } catch (\Throwable $e) {
+            $this->log->write('CodeCart PRO catalog transfer export failed: ' . $e->getMessage());
+            try { $this->operationWriter()(array('stage'=>'error','error'=>$e->getMessage(),'percent'=>0)); } catch (\Throwable $ignored) {}
+            $this->sendExportError($e->getMessage(), 500);
+        } finally {
+            if ($display_errors !== false) {
+                @ini_set('display_errors', (string)$display_errors);
+            }
+            if (is_file($path)) {
+                @unlink($path);
+            }
+        }
+    }
+
+    public function preview() {
+        $this->load->language('tool/backup');
+        $json = array();
+
+        if (!$this->user->hasPermission('modify', 'tool/backup')) {
+            $json['error'] = $this->language->get('error_permission');
+        } elseif ($this->request->server['REQUEST_METHOD'] !== 'POST') {
+            $json['error'] = $this->language->get('error_catalog_file');
+        } elseif (!isset($this->request->files['catalog_import']) || !is_array($this->request->files['catalog_import'])) {
+            $json['error'] = $this->language->get('error_catalog_file');
+        } else {
+            try {
+                $transfer = new \CodeCart\Core\CatalogTransfer($this->registry);
+                $writer = $this->operationWriter();
+                $transfer->setImportOptions(isset($this->request->post['import_rules']) && is_array($this->request->post['import_rules'])
+                    ? $this->request->post['import_rules'] : array());
+                $json['preview'] = $transfer->onProgress($writer)->prepareUpload($this->request->files['catalog_import']);
+                $this->saveIssuesCsv(isset($json['preview']['product_errors']) ? $json['preview']['product_errors'] : array());
+            } catch (\Throwable $e) {
+                $json['error'] = $e->getMessage();
+            }
+        }
+
+        $this->response->addHeader('Content-Type: application/json; charset=UTF-8');
+        $this->response->setOutput(json_encode($json, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+    }
+
+    public function import() {
+        $this->load->language('tool/backup');
+        $json = array();
+
+        if (!$this->user->hasPermission('modify', 'tool/backup')) {
+            $json['error'] = $this->language->get('error_permission');
+        } elseif ($this->request->server['REQUEST_METHOD'] !== 'POST') {
+            $json['error'] = $this->language->get('error_catalog_file');
+        } else {
+            $token = isset($this->request->post['token']) ? (string)$this->request->post['token'] : '';
+            $overwrite = !empty($this->request->post['overwrite_images']);
+            try {
+                $transfer = new \CodeCart\Core\CatalogTransfer($this->registry);
+                $writer = $this->operationWriter();
+                $writer(array('stage'=>'preparing','percent'=>2,'total'=>0,'processed'=>0,'success'=>0,'skipped'=>0,'issues'=>array()));
+                $transfer->setImportOptions(isset($this->request->post['import_rules']) && is_array($this->request->post['import_rules'])
+                    ? $this->request->post['import_rules'] : array());
+                $json['result'] = $transfer->onProgress($writer)->importToken($token, $overwrite);
+                $this->saveIssuesCsv(isset($json['result']['product_errors']) ? $json['result']['product_errors'] : array());
+                $writer(array('stage'=>'done','percent'=>100,'total'=>(int)(isset($json['result']['total_products'])?$json['result']['total_products']:0),
+                    'processed'=>(int)(isset($json['result']['processed_products'])?$json['result']['processed_products']:0),
+                    'success'=>(int)(isset($json['result']['successful_products'])?$json['result']['successful_products']:0),
+                    'skipped'=>(int)(isset($json['result']['skipped_products'])?$json['result']['skipped_products']:0),
+                    'issues'=>isset($json['result']['product_errors'])?$json['result']['product_errors']:array()));
+                $json['success'] = $this->language->get('text_catalog_import_success');
+                $this->cache->delete('*');
+            } catch (\Throwable $e) {
+                $json['error'] = $e->getMessage();
+            }
+        }
+
+        $this->response->addHeader('Content-Type: application/json; charset=UTF-8');
+        $this->response->setOutput(json_encode($json, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+    }
+
+    public function report() {
+        $this->load->language('tool/backup');
+        if ($this->request->server['REQUEST_METHOD'] !== 'POST'
+            || !$this->user->hasPermission('modify', 'tool/backup')
+            || !$this->validProgressToken()) {
+            $this->sendExportError($this->language->get('error_permission'), 403);
+            return;
+        }
+        $file = $this->reportFile();
+        if (!is_file($file)) {
+            $this->sendExportError('No product error report for this operation.', 404);
+            return;
+        }
+        $this->response->addHeader('Content-Type: text/csv; charset=UTF-8');
+        $this->response->addHeader('Content-Disposition: attachment; filename="catalog-product-errors.csv"');
+        $this->response->addHeader('Content-Length: ' . (int)filesize($file));
+        $this->response->addHeader('Cache-Control: no-store');
+        $this->response->addHeader('X-Content-Type-Options: nosniff');
+        $this->response->setFile($file, false);
+    }
+
+    private function reportFile() {
+        return dirname($this->progressFile()) . DIRECTORY_SEPARATOR . 'report_'
+            . $this->session->data['codecart_catalog_progress_token'] . '.csv';
+    }
+
+    private function saveIssuesCsv(array $issues) {
+        if (!$this->validProgressToken()) {
+            return;
+        }
+        try {
+            $path = $this->reportFile();
+            if (!$issues) { if (is_file($path)) { @unlink($path); } return; }
+            $tmp = tempnam(dirname($path), 'ccpcsv_');
+            if (!$tmp) { throw new \RuntimeException('Cannot create catalog error report.'); }
+            $handle = fopen($tmp, 'wb');
+            try {
+                // UTF-8 BOM helps Excel import multilingual product titles correctly.
+                fwrite($handle, "\xEF\xBB\xBF");
+                fputcsv($handle, array('Product ID', 'SKU', 'Product name', 'Error reason'), ',', '"', '');
+                foreach ($issues as $issue) {
+                    $fields = array((int)(isset($issue['product_id']) ? $issue['product_id'] : 0));
+                    foreach (array('sku','name','reason') as $column) {
+                        $value = isset($issue[$column]) ? (string)$issue[$column] : '';
+                        // Avoid CSV formula execution if a merchant opens the report.
+                        if (preg_match('/^[\x00-\x20]*[=+\-@]/', $value)) { $value = "'" . $value; }
+                        $fields[] = $value;
+                    }
+                    if (fputcsv($handle, $fields, ',', '"', '') === false) {
+                        throw new \RuntimeException('Cannot write catalog error report.');
+                    }
+                }
+            } finally { fclose($handle); }
+            if (!rename($tmp, $path)) { @unlink($tmp); throw new \RuntimeException('Cannot finalize catalog error report.'); }
+            @chmod($path, 0600);
+        } catch (\Throwable $e) {
+            // An optional CSV report must not make an otherwise correct XLSX
+            // or catalog import fail after the main data operation succeeded.
+            $this->log->write('Catalog error report could not be saved: ' . $e->getMessage());
+        }
+    }
+
+    public function progress() {
+        $this->load->language('tool/backup');
+        $json = array();
+        if ($this->request->server['REQUEST_METHOD'] !== 'POST'
+            || !$this->user->hasPermission('modify', 'tool/backup')
+            || !$this->validProgressToken()) {
+            $json['error'] = $this->language->get('error_permission');
+        } else {
+            $file = $this->progressFile();
+            $json = is_file($file) ? json_decode((string)file_get_contents($file), true) : array();
+            if (!is_array($json)) { $json = array(); }
+        }
+        $this->response->addHeader('Content-Type: application/json; charset=UTF-8');
+        $this->response->addHeader('Cache-Control: no-store');
+        $this->response->setOutput(json_encode($json, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+    }
+
+    private function validProgressToken() {
+        $expected = isset($this->session->data['codecart_catalog_progress_token'])
+            ? (string)$this->session->data['codecart_catalog_progress_token'] : '';
+        $actual = isset($this->request->post['progress_token'])
+            ? (string)$this->request->post['progress_token'] : '';
+        return strlen($expected) === 32 && preg_match('/^[a-f0-9]{32}$/', $expected)
+            && hash_equals($expected, $actual);
+    }
+
+    private function progressFile() {
+        $base = defined('DIR_STORAGE') ? DIR_STORAGE : DIR_UPLOAD;
+        $dir = rtrim($base, '/\\') . '/codecart_transfer/';
+        if (!is_dir($dir) && !mkdir($dir, 0750, true) && !is_dir($dir)) {
+            throw new \RuntimeException('Catalog progress storage is not writable.');
+        }
+        $token = isset($this->session->data['codecart_catalog_progress_token'])
+            ? (string)$this->session->data['codecart_catalog_progress_token'] : '';
+        if (!preg_match('/^[a-f0-9]{32}$/', $token)) {
+            throw new \RuntimeException('Invalid catalog progress token.');
+        }
+        return $dir . 'progress_' . $token . '.json';
+    }
+
+    private function operationWriter() {
+        if (!$this->validProgressToken()) {
+            // Old clients without a progress token retain the original export/import.
+            return function(array $payload) {};
+        }
+        try {
+            $path = $this->progressFile();
+        } catch (\Throwable $e) {
+            $this->log->write('Catalog progress storage unavailable.');
+            return function(array $payload) {};
+        }
+        return function(array $payload) use ($path) {
+            $payload['updated'] = time();
+            if (isset($payload['issues'])) {
+                $payload['issues'] = array_slice((array)$payload['issues'], 0, 200);
+            }
+            $temp = tempnam(dirname($path), 'ccp_');
+            if (!$temp) { return; }
+            $json = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+            if ($json === false || file_put_contents($temp, $json, LOCK_EX) === false || !rename($temp, $path)) {
+                @unlink($temp);
+                return;
+            }
+            @chmod($path, 0600);
+        };
+    }
+
+    private function sendExportError($message, $status = 400) {
+        $message = trim((string)$message);
+        if ($message === '') {
+            $message = 'Catalog export failed.';
+        }
+        $status = (int)$status;
+        $status_text = $status === 403 ? 'Forbidden' : ($status === 405 ? 'Method Not Allowed' : ($status >= 500 ? 'Internal Server Error' : 'Bad Request'));
+        $this->response->setStatusCode($status);
+        $this->response->addHeader('Content-Type: application/json; charset=UTF-8');
+        $this->response->addHeader('Cache-Control: no-store');
+        $this->response->addHeader('X-CodeCart-Export: error');
+        $this->response->setOutput(json_encode(array('error' => $message), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+    }
+}

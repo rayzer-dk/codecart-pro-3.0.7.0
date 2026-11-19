@@ -1,0 +1,12 @@
+CodeCart PRO experimental modernization switchboard
+Default on this branch: Bootstrap 5.3.9, Font Awesome Free 7.3.1, jQuery 4.1.0, Migrate 4.0.2.
+Fallback per request: ?ccp_bs5=0 -> Bootstrap 3.4.1 + FA 6.7.2; ?ccp_jquery4=0 -> jQuery 3.8.0 + Migrate 3.6.0.
+Combine flags when testing fallback stacks; query flags do not persist to navigated pages.
+CodeMirror 6 runs on admin theme and modification XML editors; ?ccp_cm6=0 falls back to old CodeMirror 5 on those forms. Summernote codeview retains CodeMirror 5 deliberately because its plugin uses the old API.
+Datepicker migration remains opt-in ?ccp_date=air (Day.js 1.11.23 + Air Datepicker 3.6.0) until full store checkout and options tests pass.
+jQVMap 1.5.1: admin library and regional maps updated.
+Flot 4.2.6: bundled and browser-tested separately; old 0.8.1 files remain for modules with legacy plugin requirements and should not be loaded simultaneously.
+Moment 2.31.0: legacy fallback only.
+Guzzle 8.5.2 + psr7 3.5.0 + promises 3.1.0: verified via Composer 8.1 environment and lock; uploaded vendor files are not tracked in GitHub, deployment requires composer install.
+Symfony 7.4 requires PHP>=8.2. The CodeCart minimum is PHP 8.1, so symfony/filesystem must remain 6.4.
+DO NOT apply this branch to production until E2E with real DB, third-party OpenCart modules, UniShop2, checkout, order payments and side effects are checked.

@@ -1,0 +1,15 @@
+CodeCart PRO 3.0.6 — DatePicker modernization preview v0.3.0
+Only experiment/bootstrap5-compat-fa7, main is untouched.
+
+Opt in to Air Datepicker 3.6.0 + Day.js 1.11.23 customParseFormat + CodeCart DatePicker jQuery adapter:
+?ccp_date=air (do NOT enable in production without end-to-end testing).
+PHP runtime compatibility target is 8.1–8.5.
+
+Bundle: experiments/bootstrap5-fa7/package.json / tools/build-vendor.cjs.
+The dayjs-with-parse.min.js files are created by the npm vendor job and must be committed into the experimental branch prior to runtime testing. The adapter reports active=false and does not overwrite the jQuery plugin if dependencies are absent.
+The adapter keeps $.fn.datetimepicker() and data('DateTimePicker') for the essential methods show/hide/date/getDate/setDate/minDate/maxDate/enable/disable/destroy; supported locales uk/ru/en, strict ISO-local date/time validation. The returned date object is Day.js for formatting/compatibility.
+Unimplemented Bootstrap DateTimePicker extensions are diagnosed as warnings and still need real module coverage.
+
+Current default behavior stays unchanged, with Moment.js and legacy calendar still installed for standard pages.
+Validate product options, discount date ranges, coupons, customers, reviews, returns, order custom fields, registration and checkout across responsive layouts.
+No live store E2E claims implied by this commit.

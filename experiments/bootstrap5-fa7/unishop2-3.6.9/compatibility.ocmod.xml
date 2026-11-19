@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<modification>
+  <name>CodeCart PRO 3.7.0 - UniShop2 3.6.9.0 PHP 8.2 compatibility</name>
+  <code>codecart_370_unishop2_369_php82</code>
+  <version>1.0.0</version>
+  <author>CodeCart PRO</author>
+  <link>https://github.com/rayzer-dk/CodeCart-3-0-6</link>
+  <file path="catalog/controller/extension/module/uni_new_data.php">
+    <operation error="log">
+      <search><![CDATA[static $uniset;]]></search>
+      <add position="replace"><![CDATA[private $uniset;]]></add>
+    </operation>
+    <operation error="log">
+      <search><![CDATA[static $lang_id;]]></search>
+      <add position="replace"><![CDATA[private $lang_id;]]></add>
+    </operation>
+    <operation error="log">
+      <search><![CDATA[static $route;]]></search>
+      <add position="replace"><![CDATA[private $route;]]></add>
+    </operation>
+  </file>
+</modification>

@@ -1,0 +1,257 @@
+/* CodeCart PRO 3.7.0 | Stock storefront foundation, isolated to Bootstrap 5. */
+html.ccp-bs5-preview {
+  --ccp-ui-radius: 12px;
+  --ccp-ui-radius-sm: 8px;
+  --ccp-ui-border: var(--bs-border-color, #e0e5eb);
+  --ccp-ui-surface: var(--ccp-store-surface, var(--bs-body-bg, #fff));
+  --ccp-ui-muted: var(--bs-tertiary-bg, #f4f6f8);
+  --ccp-ui-accent: var(--ccp-store-accent, #0b6fd3);
+  --ccp-ui-focus: var(--ccp-store-accent, #0b6fd3);
+  --ccp-ui-shadow: 0 8px 24px rgba(22,40,60,.07);
+}
+html.ccp-bs5-preview.ccp-theme-dark {
+  --ccp-ui-border: #344253;
+  --ccp-ui-surface: #202b38;
+  --ccp-ui-muted: #293745;
+  --ccp-ui-shadow: 0 8px 24px rgba(0,0,0,.2);
+}
+html.ccp-bs5-preview #content :is(.product-thumb,.panel,.card,.thumbnail) {
+  min-width: 0;
+  border: 1px solid var(--ccp-ui-border);
+  border-radius: var(--ccp-ui-radius);
+  background-color: var(--ccp-ui-surface);
+}
+html.ccp-bs5-preview #content .product-thumb {
+  overflow: hidden;
+  transition: box-shadow .16s ease, border-color .16s ease;
+}
+html.ccp-bs5-preview #content .product-thumb:hover {
+  border-color: var(--ccp-ui-accent);
+  box-shadow: var(--ccp-ui-shadow);
+}
+html.ccp-bs5-preview #content .product-thumb img { max-width: 100%; height: auto; }
+html.ccp-bs5-preview #content :is(.form-control,.form-select,select.form-control,textarea.form-control) {
+  border-radius: var(--ccp-ui-radius-sm);
+  border-color: var(--ccp-ui-border);
+  max-width: 100%;
+  min-width: 0;
+}
+html.ccp-bs5-preview #content :is(.form-control,.form-select,select.form-control):focus {
+  border-color: var(--ccp-ui-focus);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ccp-ui-focus) 18%, transparent);
+}
+html.ccp-bs5-preview #content .btn {
+  border-radius: var(--ccp-ui-radius-sm);
+  transition: background-color .16s ease, border-color .16s ease, box-shadow .16s ease;
+}
+html.ccp-bs5-preview #content :is(a,button,input,select,textarea):focus-visible {
+  outline: 2px solid var(--ccp-ui-focus);
+  outline-offset: 2px;
+}
+html.ccp-bs5-preview #content .nav-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  border-color: var(--ccp-ui-border);
+}
+html.ccp-bs5-preview #content .nav-tabs > li > a { border-radius: 8px 8px 0 0; }
+html.ccp-bs5-preview #content .table-responsive { overflow-x: auto; max-width: 100%; }
+html.ccp-bs5-preview #content .table > :not(caption) > * > * { vertical-align: middle; }
+html.ccp-bs5-preview #content .pagination { display: flex; flex-wrap: wrap; gap: 3px; }
+html.ccp-bs5-preview #content .pagination :is(a,span) { border-radius: 7px; }
+html.ccp-bs5-preview :is(.modal-content,.dropdown-menu) {
+  border: 1px solid var(--ccp-ui-border);
+  border-radius: var(--ccp-ui-radius);
+  box-shadow: var(--ccp-ui-shadow);
+}
+html.ccp-bs5-preview #content .breadcrumb { display: flex; flex-wrap: wrap; row-gap: 3px; }
+@media (max-width: 767.98px) {
+  html.ccp-bs5-preview #content .product-thumb { max-width: 100%; }
+  html.ccp-bs5-preview #content :is(.panel-body,.card-body) { padding: 12px; }
+  html.ccp-bs5-preview .modal-dialog { margin: 12px; max-width: calc(100% - 24px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  html.ccp-bs5-preview #content :is(.product-thumb,.btn) { transition: none; }
+}
+
+/* Batch 3: core CodeCart theme, isolated from UniShop2 and Bootstrap 3 fallback. */
+html.ccp-bs5-preview :is(#product-product,#product-category,#checkout-cart,#checkout-checkout,#account-login).container {
+  min-width:0; max-width:100%;
+}
+html.ccp-bs5-preview :is(#product-product,#product-category,#checkout-cart,#checkout-checkout,#account-login) .breadcrumb {
+  display:flex; flex-wrap:wrap; align-items:center; gap:4px 6px;
+  max-width:100%; margin-block:10px 18px;
+}
+html.ccp-bs5-preview :is(#product-product,#product-category,#checkout-cart,#checkout-checkout,#account-login) #content {
+  min-width:0;
+}
+html.ccp-bs5-preview #product-product .ccp-product-main>.ccp-product-media,
+html.ccp-bs5-preview #product-product .ccp-product-main>.ccp-product-info {
+  min-width:0;
+}
+html.ccp-bs5-preview #product-product :is(.thumbnails,.image-additional,.ccp-product-gallery) img {
+  max-width:100%; height:auto;
+}
+html.ccp-bs5-preview #product-product #product :is(.form-control,select,textarea) {
+  max-width:100%; min-width:0;
+}
+html.ccp-bs5-preview #product-category :is(.ccp-category-intro,.product-layout,.product-thumb) {
+  min-width:0;
+}
+html.ccp-bs5-preview #product-category .ccp-category-intro img {
+  max-width:100%; height:auto; object-fit:contain;
+}
+html.ccp-bs5-preview :is(#checkout-cart,#checkout-checkout) .table-responsive {
+  max-width:100%; overflow-x:auto; border:1px solid var(--ccp-ui-border);
+  border-radius:var(--ccp-ui-radius-sm);
+}
+html.ccp-bs5-preview :is(#checkout-cart,#checkout-checkout) .table-responsive>table {
+  margin-bottom:0;
+}
+html.ccp-bs5-preview #checkout-cart :is(.buttons,.buttons>div),
+html.ccp-bs5-preview #checkout-checkout :is(.buttons,.buttons>div) {
+  min-width:0;
+}
+html.ccp-bs5-preview :is(#checkout-cart,#checkout-checkout,#account-login) .panel,
+html.ccp-bs5-preview :is(#checkout-cart,#checkout-checkout,#account-login) .well {
+  border:1px solid var(--ccp-ui-border); border-radius:var(--ccp-ui-radius);
+  background:var(--ccp-ui-surface); min-width:0;
+}
+html.ccp-bs5-preview :is(#checkout-cart,#checkout-checkout,#account-login) :is(.form-control,select,textarea) {
+  max-width:100%; min-width:0;
+}
+html.ccp-bs5-preview #account-login .row>[class*="col-"] {
+  min-width:0;
+}
+html.ccp-bs5-preview #account-login .well {
+  padding:18px;
+}
+html.ccp-bs5-preview :is(#checkout-cart,#checkout-checkout) .panel-heading {
+  background:var(--ccp-ui-muted); border-color:var(--ccp-ui-border);
+}
+html.ccp-bs5-preview :is(#product-product,#product-category,#checkout-cart,#checkout-checkout,#account-login) .btn:focus-visible {
+  outline:2px solid var(--ccp-ui-focus); outline-offset:2px;
+}
+@media(max-width:767.98px) {
+  html.ccp-bs5-preview :is(#checkout-cart,#checkout-checkout,#account-login) .well {
+    padding:12px;
+  }
+  html.ccp-bs5-preview :is(#checkout-cart,#checkout-checkout) .buttons {
+    display:flex; flex-wrap:wrap; gap:8px; align-items:center;
+  }
+  html.ccp-bs5-preview :is(#checkout-cart,#checkout-checkout) .buttons>div {
+    float:none; max-width:100%;
+  }
+  html.ccp-bs5-preview #product-product .ccp-product-main {
+    row-gap:12px;
+  }
+}
+@media(prefers-reduced-motion:reduce) {
+  html.ccp-bs5-preview :is(#product-product,#product-category,#checkout-cart,#checkout-checkout,#account-login) .btn {
+    transition:none;
+  }
+}
+
+/* Bootstrap 5 storefront chrome: account controls, search and cart without replacing legacy handlers. */
+html.ccp-bs5-preview #top > .container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 12px;
+  row-gap: 4px;
+  min-width: 0;
+}
+html.ccp-bs5-preview #top #top-links {
+  margin-inline-start: auto;
+  min-width: 0;
+  max-width: 100%;
+}
+html.ccp-bs5-preview #top #top-links > ul {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  column-gap: 8px;
+  row-gap: 2px;
+  margin: 0;
+}
+html.ccp-bs5-preview #top #top-links > ul > li {
+  min-width: 0;
+}
+html.ccp-bs5-preview #top #top-links :is(a,button):focus-visible {
+  outline: 2px solid var(--ccp-ui-focus);
+  outline-offset: 2px;
+  border-radius: var(--ccp-ui-radius-sm);
+}
+html.ccp-bs5-preview .ccp-head > header .row {
+  align-items: center;
+}
+html.ccp-bs5-preview .ccp-head > header :is(.ccp-header-brand-col,.ccp-header-search-col,.ccp-header-cart-col) {
+  min-width: 0;
+}
+html.ccp-bs5-preview .ccp-head > header #logo {
+  min-width: 0;
+  max-width: 100%;
+}
+html.ccp-bs5-preview .ccp-head > header #logo img {
+  max-width: 100%;
+  height: auto;
+}
+html.ccp-bs5-preview .ccp-head > header #search {
+  min-width: 0;
+  max-width: 100%;
+}
+html.ccp-bs5-preview .ccp-head > header #search :is(input,.form-control) {
+  min-width: 0;
+  max-width: 100%;
+  border-radius: var(--ccp-ui-radius-sm);
+}
+html.ccp-bs5-preview .ccp-head > header #search .input-group {
+  display: flex;
+  flex-wrap: nowrap;
+  min-width: 0;
+  max-width: 100%;
+}
+html.ccp-bs5-preview .ccp-head > header #search .input-group > :is(input,.form-control) {
+  flex: 1 1 auto;
+  width: 1%;
+}
+html.ccp-bs5-preview .ccp-head > header #search .input-group-btn {
+  flex: 0 0 auto;
+}
+html.ccp-bs5-preview .ccp-head > header #cart {
+  max-width: 100%;
+}
+html.ccp-bs5-preview .ccp-head > header #cart > .btn {
+  max-width: 100%;
+}
+html.ccp-bs5-preview .ccp-head > header #cart .dropdown-menu {
+  max-width: min(440px, calc(100vw - 24px));
+  overflow-wrap: anywhere;
+}
+@media (max-width: 767.98px) {
+  html.ccp-bs5-preview #top > .container {
+    column-gap: 8px;
+  }
+  html.ccp-bs5-preview #top #top-links {
+    margin-inline-start: 0;
+  }
+  html.ccp-bs5-preview #top #top-links > ul {
+    column-gap: 4px;
+  }
+  html.ccp-bs5-preview .ccp-head > header .row {
+    row-gap: 8px;
+  }
+  html.ccp-bs5-preview .ccp-head > header :is(.ccp-header-brand-col,.ccp-header-search-col,.ccp-header-cart-col) {
+    width: 100%;
+    max-width: 100%;
+  }
+  html.ccp-bs5-preview .ccp-head > header #search {
+    margin-bottom: 0;
+  }
+  html.ccp-bs5-preview .ccp-head > header #search :is(.form-control,.btn) {
+    min-height: 44px;
+  }
+  html.ccp-bs5-preview .ccp-head > header #cart {
+    margin-bottom: 0;
+  }
+}

@@ -1,0 +1,87 @@
+{{ header }}{{ column_left }}
+<div id="content" class="ccp-document-admin">
+  <div class="page-header">
+    <div class="container-fluid">
+      <div class="pull-right"><a href="{{ public_documents }}" class="btn btn-default" title="{{ text_public_documents }}"><i class="fa fa-file-pdf-o"></i> {{ text_public_documents }}</a> <a href="{{ add }}" data-toggle="tooltip" title="{{ button_add }}" class="btn btn-primary"><i class="fa fa-plus"></i></a>
+        <button type="button" data-toggle="tooltip" title="{{ button_delete }}" class="btn btn-danger" onclick="if (!$('#form-download input[name=\'selected[]\']:checked').length) return; if (confirm('{{ text_confirm|e('js') }}')) $('#form-download').submit();"><i class="fa fa-trash-o"></i></button>
+      </div>
+      <h1>{{ heading_title }}</h1>
+      <ul class="breadcrumb">
+        {% for breadcrumb in breadcrumbs %}
+        <li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="container-fluid">
+    {% if error_warning %}
+    <div class="alert alert-danger alert-dismissible"><i class="fa fa-exclamation-circle"></i> {{ error_warning }}
+      <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
+    {% endif %}
+    {% if success %}
+    <div class="alert alert-success alert-dismissible"><i class="fa fa-check-circle"></i> {{ success }}
+      <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
+    {% endif %}
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title"><i class="fa fa-list"></i> {{ text_list }}</h3>
+      </div>
+      <div class="panel-body">
+        <form action="index.php" method="get" class="ccp-doc-search" role="search">
+          <input type="hidden" name="route" value="catalog/download" />
+          <input type="hidden" name="user_token" value="{{ user_token }}" />
+          <input type="hidden" name="sort" value="{{ sort }}" />
+          <input type="hidden" name="order" value="{{ order }}" />
+          <input type="text" name="filter_name" class="form-control" value="{{ filter_name }}" maxlength="120" placeholder="{{ entry_download_search }}" aria-label="{{ entry_download_search }}" />
+          <button type="submit" class="btn btn-primary" title="{{ button_download_search }}"><i class="fa fa-search"></i> {{ button_download_search }}</button>
+          {% if filter_name %}<a href="{{ filter_reset }}" class="btn btn-default" title="{{ button_download_reset }}"><i class="fa fa-times"></i> {{ button_download_reset }}</a>{% endif %}
+        </form>
+        <form action="{{ delete }}" method="post" enctype="multipart/form-data" id="form-download">
+          <div class="table-responsive ccp-doc-table-wrap">
+            <table class="table table-bordered table-hover ccp-doc-table">
+              <thead><tr>
+                <th class="ccp-doc-col-check"><input type="checkbox" aria-label="{{ column_name }}" onclick="$('#form-download input[name*=\'selected\']').prop('checked', this.checked);" /></th>
+                <th class="ccp-doc-col-name"><a href="{{ sort_name }}" class="{{ sort == 'dd.name' ? order|lower : '' }}">{{ column_name }}</a></th>
+                <th class="ccp-doc-col-count">{{ column_download_count }}</th>
+                <th class="ccp-doc-col-count">{{ column_download_30d }}</th>
+                <th class="ccp-doc-col-date">{{ column_last_download }}</th>
+                <th class="ccp-doc-col-date"><a href="{{ sort_date_added }}" class="{{ sort == 'd.date_added' ? order|lower : '' }}">{{ column_date_added }}</a></th>
+                <th class="ccp-doc-col-actions">{{ column_action }}</th>
+              </tr></thead>
+              <tbody>
+                {% if downloads %}
+                {% for download in downloads %}
+                <tr>
+                  <td class="ccp-doc-col-check">{% if download.download_id in selected %}
+                    <input type="checkbox" name="selected[]" value="{{ download.download_id }}" checked="checked" />
+                    {% else %}
+                    <input type="checkbox" name="selected[]" value="{{ download.download_id }}" />
+                    {% endif %}</td>
+                  <td class="ccp-doc-col-name">{{ download.name }}</td>
+                  <td class="ccp-doc-col-count">{{ download.stats_count }}</td>
+                  <td class="ccp-doc-col-count">{{ download.stats_30d }}</td>
+                  <td class="ccp-doc-col-date">{{ download.stats_last }}</td>
+                  <td class="ccp-doc-col-date">{{ download.date_added }}</td>
+                  <td class="ccp-doc-col-actions"><a href="{{ download.edit }}" data-toggle="tooltip" title="{{ button_edit }}" class="btn btn-primary"><i class="fa fa-pencil"></i></a></td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr>
+                  <td class="ccp-doc-empty" colspan="7">{{ text_no_results }}</td>
+                </tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+        </form>
+        <div class="row ccp-doc-paging">
+          <div class="col-sm-6 text-left">{{ pagination }}</div>
+          <div class="col-sm-6 text-right">{{ results }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{{ footer }}

@@ -1,0 +1,124 @@
+<?php
+$_['heading_title'] = 'Дані / Резервні копії';
+$_['text_data_center'] = 'Центр даних';
+$_['text_success'] = 'Відновлення бази даних завершено успішно.';
+$_['text_select_all'] = 'Обрати все';
+$_['text_unselect_all'] = 'Зняти вибір';
+$_['text_catalog_title'] = 'Імпорт / Експорт каталогу';
+$_['text_catalog_help'] = 'Безпечне масове перенесення та редагування каталогу. XLSX використовує логічні назви таблиць без префікса БД і при імпорті звіряється з реальною схемою OpenCart/ocStore.';
+$_['text_catalog_export_format'] = 'Звичайний XLSX містить дані каталогу та посилання на зображення/файли. ZIP включає catalog.xlsx, фото каталогу й пов\'язані файли цифрових товарів у межах обмежень розміру.';
+$_['text_catalog_vs_sql'] = 'Перенесення каталогу: XLSX або ZIP із catalog.xlsx, зображеннями та файлами цифрових товарів. SQL нижче зберігає вибрані таблиці БД, але не файли сайту, зображення та налаштування сервера.';
+$_['text_catalog_download_target'] = 'Файл каталогу: codecart_catalog_*.xlsx (або ZIP з catalog.xlsx).';
+$_['text_catalog_import'] = 'Імпорт каталогу';
+$_['text_catalog_import_help'] = 'Спочатку файл лише перевіряється. Запис у БД починається тільки після підтвердження. Перед імпортом автоматично створюється SQL-знімок таблиць, які будуть змінені. ID не перенумеровуються: це безпечно для перенесення/відновлення спорідненого каталогу, але перед об’єднанням двох незалежних магазинів потрібно перевірити збіги ID.';
+$_['text_xlsx_unavailable'] = 'Імпорт/експорт XLSX недоступний: у WEB/FPM PHP мають бути активні розширення ZIP і SimpleXML.';
+$_['text_xlsx_export_unavailable'] = 'Експорт XLSX недоступний: у WEB/FPM PHP має бути активне розширення ZIP.';
+$_['text_xlsx_import_unavailable'] = 'Імпорт XLSX недоступний: у WEB/FPM PHP мають бути активні розширення ZIP і SimpleXML.';
+$_['text_no_file'] = 'Файл не вибрано';
+$_['text_preview'] = 'Попередня перевірка';
+$_['text_processing'] = 'Обробка…';
+$_['text_catalog_confirm'] = 'Імпорт оновить або додасть записи каталогу з такими самими ID. Автоматичний SQL-знімок буде створено перед записом. Продовжити?';
+$_['text_catalog_import_success'] = 'Імпорт каталогу завершено.';
+$_['text_catalog_result'] = 'Оновлено/додано записів: %s. Резервна копія: %b';
+$_['text_sql_backup_title'] = 'Резервна копія бази даних';
+$_['text_sql_backup_help'] = 'Зберігає структуру та дані вибраних таблиць у узгодженому SQL-знімку. Це НЕ повний архів сайту: PHP-файли, шаблони, зображення, цифрові завантаження, config.php і файли storage не входять.';
+$_['text_restore_warning'] = 'Відновлення SQL виконується пакетами та не є атомарним відкатом усього сайту. Поточні таблиці адміністраторів user і user_group зберігаються. Перед початком потрібна повна резервна копія файлів сайту й БД на хостингу.';
+$_['text_restore_confirm'] = 'Відновлення SQL може замінити поточні дані вибраних таблиць. Продовжити?';
+
+$_['tab_catalog'] = 'Каталог XLSX / ZIP';
+$_['tab_backup'] = 'База даних SQL';
+$_['tab_restore'] = 'Відновлення БД';
+
+$_['entry_export'] = 'Таблиці';
+$_['entry_progress'] = 'Прогрес';
+$_['entry_portable'] = 'ZIP із зображеннями та цифровими файлами';
+$_['help_portable'] = 'ZIP включає catalog.xlsx, зображення з image/catalog і файли цифрових товарів із захищеного сховища. Завеликі або відсутні файли блокують повний пакет. XLSX містить лише посилання.';
+$_['entry_overwrite_images'] = 'Замінювати наявні зображення файлами з пакета';
+
+$_['entity_products'] = 'Товари';
+$_['entity_categories'] = 'Категорії';
+$_['entity_manufacturers'] = 'Виробники';
+$_['entity_options'] = 'Опції';
+$_['entity_attributes'] = 'Характеристики';
+$_['entity_filters'] = 'Фільтри';
+$_['help_products'] = 'Описи, категорії, фото, опції, характеристики, ціни, залишки, акції, завантаження та зв\'язки';
+$_['help_categories'] = 'Дерево, описи, магазини, макети, фільтри та SEO';
+$_['help_manufacturers'] = 'Виробники, магазини та макети';
+$_['help_options'] = 'Опції та всі їх значення';
+$_['help_attributes'] = 'Групи характеристик і характеристики';
+$_['help_filters'] = 'Групи фільтрів і значення';
+$_['icon_products'] = 'fa-cube';
+$_['icon_categories'] = 'fa-folder-open';
+$_['icon_manufacturers'] = 'fa-tags';
+$_['icon_options'] = 'fa-list-alt';
+$_['icon_attributes'] = 'fa-sliders';
+$_['icon_filters'] = 'fa-filter';
+
+$_['button_export'] = 'Завантажити резервну копію БД (.sql)';
+$_['button_import'] = 'Відновити з SQL';
+$_['button_catalog_export'] = 'Експортувати каталог у XLSX';
+$_['button_catalog_select'] = 'Вибрати XLSX або ZIP';
+$_['button_catalog_import'] = 'Імпортувати після перевірки';
+
+$_['column_table'] = 'Таблиця';
+$_['column_rows'] = 'Рядків';
+$_['column_columns'] = 'Сумісних полів';
+$_['column_status'] = 'Стан';
+
+$_['error_permission'] = 'У вас недостатньо прав для зміни даних магазину.';
+$_['error_export'] = 'Оберіть хоча б одну таблицю для резервної копії.';
+$_['error_file'] = 'Файл не знайдено або не вдалося прочитати.';
+$_['error_filesize'] = 'Розмір SQL-резервної копії перевищує 128 МБ.';
+$_['error_filetype'] = 'Дозволено лише коректний SQL-файл резервної копії OpenCart.';
+$_['error_catalog_entities'] = 'Оберіть хоча б один розділ каталогу.';
+$_['error_catalog_file'] = 'Виберіть коректний файл каталогу.';
+$_['error_catalog_export'] = 'Не вдалося створити файл експорту каталогу.';
+$_['error_restore_table'] = 'SQL-файл містить таблицю, яка не належить поточному магазину. Відновлення зупинено.';
+
+$_['text_progress_preparing'] = 'Підготовка файлу…';
+$_['text_progress_uploading'] = 'Завантаження файлу…';
+$_['text_progress_checking'] = 'Перевірка структури…';
+$_['text_progress_importing'] = 'Запис даних у каталог…';
+$_['text_progress_downloading'] = 'Завантаження готового файлу…';
+$_['text_progress_done'] = 'Готово';
+$_['text_relation_preserve'] = 'Безпечний режим: імпорт не видаляє наявні додаткові категорії, опції, характеристики чи інші зв’язки товару, якщо відповідного рядка немає у файлі. Для основної категорії виконується сумісне зіставлення OpenCart/ocStore.';
+
+$_['text_sql_sensitive_warning'] = 'SQL-копія може містити хеші паролів, API-ключі, налаштування пошти та інші конфіденційні дані. Зберігайте файл як секрет. Тимчасові таблиці session та api_session за замовчуванням не вибрані.';
+
+$_['text_catalog_xml_help'] = 'XML не дублює перенос каталогу: для Google Merchant та зовнішніх інтеграцій використовуйте окремі XML-фіди для кожної активної мови.';
+$_['button_xml_feeds'] = 'Відкрити XML-фіди';
+
+$_['error_restore_query'] = 'Помилка SQL під час відновлення таблиці';
+$_['error_restore_snapshot'] = 'Не вдалося створити захисну копію БД перед відновленням. Операцію скасовано без зміни даних.';
+$_['text_restore_snapshot_saved'] = ' Захисна копія: storage/backup/%s.';
+$_['text_products_found'] = 'Усього товарів';
+$_['text_products_processed'] = 'Оброблено';
+$_['text_products_success'] = 'Успішно';
+$_['text_products_skipped'] = 'Пропущено';
+$_['text_product_errors'] = 'Товари з помилками';
+$_['column_product_name'] = 'Назва товару';
+$_['column_error_reason'] = 'Причина помилки';
+$_['text_error_preview_limit'] = 'Показано перші 200 помилок. Повний список доступний у журналі обробки.';
+$_['button_download_product_errors'] = 'Завантажити повний список помилок CSV';
+$_['label_import_status'] = 'Статус імпортованих товарів';
+$_['option_import_status_preserve'] = 'Зберегти статус із файлу';
+$_['option_import_status_enable'] = 'Усі увімкнути';
+$_['option_import_status_disable'] = 'Усі вимкнути';
+$_['help_import_status'] = 'Впливає лише на товари поточного імпорту, зокрема оновлювані. За замовчуванням статус із файлу зберігається.';
+$_['label_import_fallbacks'] = 'Заповнення відсутніх полів';
+$_['help_import_fallbacks'] = 'Для кожного поля виберіть: залишити як у файлі, порожнє значення (кількість і ціна — 0) або власне. Заповнені значення з файлу не змінюються.';
+$_['option_import_field_preserve'] = 'Як у файлі';
+$_['option_import_field_empty'] = 'Порожньо / 0';
+$_['option_import_field_custom'] = 'Власне значення';
+$_['placeholder_import_custom'] = 'Введіть значення';
+$_['text_import_rules_recheck'] = 'Правила змінено — виберіть файл знову';
+$_['import_field_model'] = 'Код товару (MODEL)';
+$_['import_field_sku'] = 'Артикул (SKU)';
+$_['import_field_mpn'] = 'Код виробника (MPN)';
+$_['import_field_upc'] = 'UPC';
+$_['import_field_ean'] = 'EAN';
+$_['import_field_jan'] = 'JAN';
+$_['import_field_isbn'] = 'ISBN';
+$_['import_field_location'] = 'Розташування';
+$_['import_field_quantity'] = 'Залишок';
+$_['import_field_price'] = 'Ціна';

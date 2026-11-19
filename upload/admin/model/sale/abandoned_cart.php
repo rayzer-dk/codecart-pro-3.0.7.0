@@ -1,0 +1,392 @@
+<?php
+class ModelSaleAbandonedCart extends Model {
+    private $customSourceResolved = false;
+    private $hasGuestSurname = null;
+    private $registeredConsentTableExists = null;
+    private $customSourceCache = null;
+    // Optional external SQL cart adapter. Never writes to another module's table.
+    private function customSource() {
+        if ($this->customSourceResolved) { return $this->customSourceCache; }
+        $this->customSourceResolved = true;
+        $table = trim((string)$this->config->get('codecart_abandoned_cart_table'));
+        if (!preg_match('/^[a-zA-Z0-9_]{1,64}$/', $table)) { return null; }
+        if (strpos($table, DB_PREFIX) !== 0) { $table = DB_PREFIX . $table; }
+        $fields = array();
+        foreach (array('session','product','quantity','date','customer','email','phone','firstname','lastname') as $key) {
+            $value = trim((string)$this->config->get('codecart_abandoned_cart_col_' . $key));
+            if ($value === '' && in_array($key, array('customer','email','phone','firstname','lastname'), true)) { $fields[$key] = ''; continue; }
+            if (!preg_match('/^[a-zA-Z0-9_]{1,64}$/', $value)) { return null; }
+            $fields[$key] = $value;
+        }
+        try {
+            $cols = $this->db->query('SHOW COLUMNS FROM ' . chr(96) . $table . chr(96))->rows;
+            $exists = array();
+            foreach ($cols as $col) { $exists[$col['Field']] = true; }
+            foreach ($fields as $field) { if ($field !== '' && !isset($exists[$field])) { return null; } }
+        } catch (\Throwable $e) { return null; }
+        $this->customSourceCache = array('table'=>$table,'fields'=>$fields);
+        return $this->customSourceCache;
+    }
+
+    /** Read-only schema assistance for an administrator configuring a separate SQL cart table. */
+    public function inspectExternalTable(string $table): array {
+        $table = trim($table);
+        if (!preg_match('/^[A-Za-z0-9_]{1,64}$/', $table)) {
+            return array('valid' => false, 'columns' => array(), 'fields' => array(), 'missing' => array());
+        }
+        if (strpos($table, DB_PREFIX) !== 0) { $table = DB_PREFIX . $table; }
+        $columns = array();
+        try {
+            $query = $this->db->query('SHOW COLUMNS FROM `' . $table . '`');
+            foreach ($query->rows as $row) { $columns[] = (string)$row['Field']; }
+        } catch (\Throwable $e) {
+            return array('valid' => false, 'columns' => array(), 'fields' => array(), 'missing' => array());
+        }
+        $candidates = array(
+            'col_session' => array('session_id', 'session', 'cart_session_id'),
+            'col_product' => array('product_id', 'product', 'id_product'),
+            'col_quantity' => array('quantity', 'qty', 'count'),
+            'col_date' => array('date_added', 'date_modified', 'updated_at', 'created_at', 'date_create'),
+            'col_customer' => array('customer_id', 'id_customer', 'customer'),
+            'col_email' => array('email', 'customer_email'),
+            'col_phone' => array('telephone', 'phone', 'customer_phone'),
+            'col_firstname' => array('firstname','first_name','customer_firstname'),
+            'col_lastname' => array('lastname','last_name','customer_lastname')
+        );
+        $fields = array();
+        $missing = array();
+        foreach ($candidates as $key => $names) {
+            $found = '';
+            foreach ($names as $name) {
+                foreach ($columns as $column) {
+                    if (strcasecmp($column, $name) === 0) { $found = $column; break 2; }
+                }
+            }
+            $fields[$key] = $found;
+            if ($found === '' && in_array($key, array('col_session','col_product','col_quantity','col_date'), true)) {
+                $missing[] = $key;
+            }
+        }
+        return array('valid' => true, 'columns' => $columns, 'fields' => $fields, 'missing' => $missing);
+    }
+
+    /** Names only: the storefront route is never interpreted as a database table. */
+    public function findExternalCartTables(): array {
+        $found = array();
+        try {
+            $rows = $this->db->query('SHOW TABLES')->rows;
+            foreach ($rows as $row) {
+                $name = (string)reset($row);
+                if (!preg_match('/^[a-zA-Z0-9_]{1,64}$/', $name)) { continue; }
+                if (strpos($name, DB_PREFIX) !== 0) { continue; }
+                $suffix = strtolower(substr($name, strlen(DB_PREFIX)));
+                if ($suffix === 'cart' || $suffix === 'codecart_cart_guest_contact' ||
+                    $suffix === 'codecart_cart_reminder_log') { continue; }
+                if (strpos($suffix, 'cart') === false && strpos($suffix, 'basket') === false) { continue; }
+                $schema = $this->inspectExternalTable($name);
+                // Do not offer unrelated tables merely because their name includes cart/basket.
+                if (!$schema['valid'] || $schema['missing']) { continue; }
+                $found[] = array('table' => $name, 'mapping' => $schema);
+                if (count($found) >= 30) { break; }
+            }
+        } catch (\Throwable $e) { return array(); }
+        return $found;
+    }
+
+    public function getExternalSourceStatus() { return $this->customSource() !== null; }
+
+    private function sourceColumn($fields, $name, $otherwise) {
+        return $fields[$name] === '' ? $otherwise : 'c.' . chr(96) . $fields[$name] . chr(96);
+    }
+
+    private function externalQuery($count = false) {
+        $source = $this->customSource();
+        if (!$source) { return ''; }
+        $f = $source['fields'];
+        $sid = $this->sourceColumn($f, 'session', "''");
+        $pid = $this->sourceColumn($f, 'product', '0');
+        $qty = $this->sourceColumn($f, 'quantity', '0');
+        $dt = $this->sourceColumn($f, 'date', 'NOW()');
+        $cid = $this->sourceColumn($f, 'customer', '0');
+        $email = 'COALESCE(NULLIF(' . $this->sourceColumn($f, 'email', "''") . ",''),cu.email,'')";
+        $phone = 'COALESCE(NULLIF(' . $this->sourceColumn($f, 'phone', "''") . ",''),cu.telephone,'')";
+        $first = $this->sourceColumn($f, 'firstname', "''");
+        $last = $this->sourceColumn($f, 'lastname', "''");
+        $name = "TRIM(CONCAT(COALESCE(NULLIF(cu.firstname,'')," . $first . "), ' ', COALESCE(NULLIF(cu.lastname,'')," . $last . ")))";
+        $idle = max(1, min(10080, (int)$this->config->get('codecart_abandoned_cart_idle_minutes') ?: 5));
+        $days = max(1, min(30, (int)$this->config->get('codecart_abandoned_cart_days') ?: 7));
+        $from = ' FROM ' . chr(96) . $source['table'] . chr(96) . ' c LEFT JOIN '
+            . chr(96) . DB_PREFIX . 'customer' . chr(96) . ' cu ON cu.customer_id=' . $cid;
+        $where = ' WHERE ' . $dt . ' >= DATE_SUB(NOW(), INTERVAL ' . $days . ' DAY)'
+            . ' AND ' . $sid . " <> '' AND " . $qty . ' > 0 AND ' . $pid . ' > 0';
+        if ($count) {
+            return 'SELECT COUNT(*) AS total FROM (SELECT ' . $sid . ' AS session_id, ' . $cid . ' AS customer_id'
+                . $from . $where . ' GROUP BY ' . $cid . ', ' . $sid . ' HAVING MAX(' . $dt . ') < DATE_SUB(NOW(), INTERVAL ' . $idle . ' MINUTE)' . ') x';
+        }
+        return 'SELECT ' . $cid . ' AS customer_id, ' . $sid . ' AS session_id, '
+            . 'COUNT(*) AS line_count, SUM(' . $qty . ') AS quantity, MAX(' . $dt . ') AS last_activity,'
+            . " MAX(" . $name . ") AS customer,"
+            . ' MAX(COALESCE(' . $email . ",'')) AS email, MAX(COALESCE(" . $phone . ",'')) AS telephone,"
+            . ' TIMESTAMPDIFF(MINUTE,MAX(' . $dt . '),NOW()) AS idle_minutes '
+            . $from . $where . ' GROUP BY ' . $cid . ', ' . $sid . ' HAVING MAX(' . $dt . ') < DATE_SUB(NOW(), INTERVAL ' . $idle . ' MINUTE)';
+    }
+
+    public function getExternalCartProducts($customerId, $sessionId) {
+        $source = $this->customSource();
+        if (!$source || $sessionId === '') { return array(); }
+        $f = $source['fields'];
+        $sid = $this->sourceColumn($f,'session',"''");
+        $cid = $this->sourceColumn($f,'customer','0');
+        $pid = $this->sourceColumn($f,'product','0');
+        $qty = $this->sourceColumn($f,'quantity','0');
+        $sql = 'SELECT ' . $pid . ' AS product_id, ' . $qty . ' AS quantity, p.price, p.image, pd.name'
+            . ' FROM ' . chr(96) . $source['table'] . chr(96) . ' c LEFT JOIN '
+            . chr(96) . DB_PREFIX . 'product' . chr(96) . ' p ON p.product_id=' . $pid
+            . ' LEFT JOIN ' . chr(96) . DB_PREFIX . 'product_description' . chr(96)
+            . ' pd ON pd.product_id=' . $pid . " AND pd.language_id='" . (int)$this->config->get('config_language_id') . "'"
+            . ' WHERE ' . $cid . "='" . (int)$customerId . "' AND " . $sid . "='" . $this->db->escape((string)$sessionId) . "' LIMIT 100";
+        $rows = $this->db->query($sql)->rows;
+        foreach ($rows as &$row) {
+            $row['line_total'] = \CodeCart\Core\Money::decimal(
+                \CodeCart\Core\Money::multiply((float)$row['price'], (int)$row['quantity']));
+        }
+        unset($row);
+        return $rows;
+    }
+
+    private function sortSql($sort, $order) {
+        $map = array(
+            'customer' => 'customer',
+            'email' => 'email',
+            'telephone' => 'telephone',
+            'quantity' => 'quantity',
+            'last_activity' => 'last_activity',
+            'inactive' => 'last_activity'
+        );
+        $column = isset($map[$sort]) ? $map[$sort] : 'last_activity';
+        $direction = strtoupper((string)$order) === 'ASC' ? 'ASC' : 'DESC';
+        if ($sort === 'inactive') {
+            $direction = $direction === 'ASC' ? 'DESC' : 'ASC';
+        }
+        return $column . ' ' . $direction;
+    }
+
+    private function guestSurnameExists(): bool {
+        if ($this->hasGuestSurname !== null) { return $this->hasGuestSurname; }
+        try {
+            $found = $this->db->query("SHOW COLUMNS FROM `" . DB_PREFIX . "codecart_cart_guest_contact` LIKE 'lastname'");
+            $this->hasGuestSurname = $found->num_rows > 0;
+        } catch (\Throwable $e) { $this->hasGuestSurname = false; }
+        return $this->hasGuestSurname;
+    }
+
+    private function hasRegisteredConsentTable(): bool {
+        if ($this->registeredConsentTableExists !== null) { return $this->registeredConsentTableExists; }
+        try {
+            $q = $this->db->query("SHOW TABLES LIKE '" . $this->db->escape(DB_PREFIX . 'codecart_cart_registered_consent') . "'");
+            $this->registeredConsentTableExists = $q->num_rows > 0;
+        } catch (\Throwable $e) { $this->registeredConsentTableExists = false; }
+        return $this->registeredConsentTableExists;
+    }
+
+    private function standardGroupedSql(array $filters = array()): string {
+        $days = max(1, min(30, (int)$this->config->get('codecart_abandoned_cart_days') ?: 7));
+        $idle = max(1, min(10080, (int)($this->config->get('codecart_abandoned_cart_idle_minutes') ?? 5)));
+        $guest = (bool)$this->config->get('codecart_abandoned_cart_guest_capture');
+        // Group contact records first. One cart line must never be multiplied by
+        // consent records from multiple storefronts sharing a session id.
+        $guestJoin = $guest ? " LEFT JOIN (SELECT session_id, MAX(store_id) AS store_id, MAX(email) AS email, MAX(firstname) AS firstname, " . ($this->guestSurnameExists() ? 'MAX(lastname)' : "''") . " AS lastname, MAX(telephone) AS telephone, MAX(consent) AS consent, MAX(recovered_at) AS recovered_at FROM `" . DB_PREFIX . "codecart_cart_guest_contact` WHERE consent=1 AND date_modified>=DATE_SUB(NOW(), INTERVAL " . $days . " DAY) GROUP BY session_id HAVING COUNT(DISTINCT store_id)=1) gc ON gc.session_id=c.session_id AND c.customer_id=0 " : '';
+        $registeredJoin = $this->hasRegisteredConsentTable()
+            ? " LEFT JOIN (SELECT session_id,customer_id,MAX(store_id) AS store_id,MAX(consent) AS consent FROM `" . DB_PREFIX . "codecart_cart_registered_consent` WHERE consent=1 AND date_modified>=DATE_SUB(NOW(), INTERVAL " . $days . " DAY) GROUP BY session_id,customer_id HAVING COUNT(DISTINCT store_id)=1) rc ON rc.session_id=c.session_id AND rc.customer_id=c.customer_id AND c.customer_id>0 "
+            : '';
+        // Refer to a constant when the opt-in table has not been installed yet.
+        $registeredConsent = $registeredJoin !== '' ? 'rc.consent' : '0';
+        $registeredStore = $registeredJoin !== '' ? 'rc.store_id' : 'NULL';
+        $name = "MAX(CASE WHEN cu.customer_id IS NULL THEN " . ($guest ? ($this->guestSurnameExists() ? "TRIM(CONCAT(COALESCE(gc.firstname,''),' ',COALESCE(gc.lastname,'')))" : "COALESCE(gc.firstname,'')") : "''") . " ELSE TRIM(CONCAT(COALESCE(cu.firstname,''),' ',COALESCE(cu.lastname,''))) END)";
+        $email = $guest ? "MAX(COALESCE(cu.email,gc.email,''))" : "MAX(COALESCE(cu.email,''))";
+        $phone = $guest ? "MAX(COALESCE(cu.telephone,gc.telephone,''))" : "MAX(COALESCE(cu.telephone,''))";
+        $optin = $guest ? "MAX(CASE WHEN c.customer_id=0 THEN COALESCE(gc.consent,0) ELSE COALESCE(" . $registeredConsent . ",0) END)" : "MAX(COALESCE(" . $registeredConsent . ",0))";
+        $storeId = $guest ? "MAX(CASE WHEN c.customer_id=0 THEN gc.store_id ELSE " . $registeredStore . " END)" : 'MAX(' . $registeredStore . ')';
+        $verified = $guest ? "MAX(CASE WHEN c.customer_id=0 AND gc.recovered_at IS NOT NULL THEN 1 ELSE 0 END)" : '0';
+        $sql = "SELECT c.customer_id,c.session_id,COUNT(*) AS line_count,SUM(c.quantity) AS quantity,MAX(c.cart_id) AS max_cart_id,MAX(c.date_added) AS last_activity, " .
+            $name . " AS customer," . $email . " AS email," . $phone . " AS telephone," . $optin . " AS newsletter," . $verified . " AS recovered, " . $storeId . " AS store_id, " .
+            " TIMESTAMPDIFF(MINUTE, MAX(c.date_added), NOW()) AS idle_minutes " .
+            " FROM `" . DB_PREFIX . "cart` c LEFT JOIN `" . DB_PREFIX . "customer` cu ON cu.customer_id=c.customer_id AND c.customer_id>0 " . $guestJoin . $registeredJoin .
+            " WHERE c.api_id=0 AND c.date_added>=DATE_SUB(NOW(),INTERVAL " . $days . " DAY)";
+        $sql .= " GROUP BY c.customer_id,c.session_id HAVING MAX(c.date_added)<DATE_SUB(NOW(),INTERVAL " . $idle . " MINUTE)";
+        if (!empty($filters['search'])) {
+            $search = $this->db->escape((string)$filters['search']);
+            $sql .= " AND (MAX(cu.firstname) LIKE '%" . $search . "%' OR MAX(cu.lastname) LIKE '%" . $search . "%' OR MAX(cu.email) LIKE '%" . $search . "%' OR MAX(cu.telephone) LIKE '%" . $search . "%'" .
+                ($guest ? " OR MAX(gc.email) LIKE '%" . $search . "%' OR MAX(gc.firstname) LIKE '%" . $search . "%'" . ($this->guestSurnameExists() ? " OR MAX(gc.lastname) LIKE '%" . $search . "%'" : '') . " OR MAX(gc.telephone) LIKE '%" . $search . "%'" : '') .
+                " OR EXISTS (SELECT 1 FROM `" . DB_PREFIX . "cart` search_cart JOIN `" . DB_PREFIX . "product_description` pd ON pd.product_id=search_cart.product_id AND pd.language_id='" . (int)$this->config->get('config_language_id') . "' WHERE search_cart.customer_id=c.customer_id AND search_cart.session_id=c.session_id AND search_cart.api_id=0 AND pd.name LIKE '%" . $search . "%'))";
+        }
+        if (($filters['contact'] ?? '') === 'yes') { $sql .= " AND " . $optin . "=1 AND " . $email . "<>''"; }
+        if (($filters['contact'] ?? '') === 'no') { $sql .= " AND (" . $optin . "<>1 OR " . $email . "='')"; }
+        if (($filters['contact'] ?? '') === 'guest') { $sql .= " AND c.customer_id=0"; }
+        return $sql;
+    }
+
+    public function getAbandonedCarts($start = 0, $limit = 20, $sort = 'last_activity', $order = 'DESC', array $filters = array()) {
+        $start = max(0, (int)$start);
+        $limit = max(1, min(100, (int)$limit));
+        if ((string)$this->config->get('codecart_abandoned_cart_source') === 'external') {
+            $sql = $this->externalQuery();
+            return $sql ? $this->db->query($sql . ' ORDER BY ' . $this->sortSql($sort, $order)
+                . ' LIMIT ' . $start . ',' . $limit)->rows : array();
+        }
+        return $this->db->query($this->standardGroupedSql($filters) . ' ORDER BY ' . $this->sortSql((string)$sort, (string)$order) . ' LIMIT ' . $start . ',' . $limit)->rows;
+    }
+
+    public function getTotalAbandonedCarts(array $filters = array()) {
+        if ((string)$this->config->get('codecart_abandoned_cart_source') === 'external') {
+            $sql = $this->externalQuery(true);
+            return $sql ? (int)$this->db->query($sql)->row['total'] : 0;
+        }
+        $q = $this->db->query('SELECT COUNT(*) AS total FROM (' . $this->standardGroupedSql($filters) . ') grouped');
+        return (int)($q->row['total'] ?? 0);
+    }
+
+    public function getEstimatedCartValue(): float {
+        // Current base product prices, without option, tax and historical discounts.
+        // The seven-day limit and grouping prevent counting old lines of active carts.
+        if ((string)$this->config->get('codecart_abandoned_cart_source') === 'external') { return 0.0; }
+        $days = max(1, min(30, (int)$this->config->get('codecart_abandoned_cart_days') ?: 7));
+        $idle = max(1, min(10080, (int)($this->config->get('codecart_abandoned_cart_idle_minutes') ?? 5)));
+        $sql = "SELECT SUM(c.quantity*COALESCE(p.price,0)) AS total FROM `" . DB_PREFIX . "cart` c INNER JOIN (SELECT customer_id,session_id FROM `" . DB_PREFIX . "cart` WHERE api_id=0 AND date_added>=DATE_SUB(NOW(),INTERVAL " . $days . " DAY) GROUP BY customer_id,session_id HAVING MAX(date_added)<DATE_SUB(NOW(),INTERVAL " . $idle . " MINUTE)) cart_scope ON cart_scope.customer_id=c.customer_id AND cart_scope.session_id=c.session_id LEFT JOIN `" . DB_PREFIX . "product` p ON p.product_id=c.product_id WHERE c.api_id=0 AND c.date_added>=DATE_SUB(NOW(),INTERVAL " . $days . " DAY)";
+        return (float)($this->db->query($sql)->row['total'] ?? 0);
+    }
+
+    public function getCartContactSummary(): array {
+        $result = $this->db->query("SELECT COUNT(*) AS total,SUM(CASE WHEN newsletter=1 AND recovered=0 AND email REGEXP '^[^@ ]+@[^@ ]+[.][^@ ]+$' THEN 1 ELSE 0 END) AS reachable FROM (" . $this->standardGroupedSql() . ') all_carts');
+        return array('total'=>(int)($result->row['total'] ?? 0), 'reachable'=>(int)($result->row['reachable'] ?? 0));
+    }
+
+    public function deleteAbandonedCart($customer_id, $session_id) {
+        $customer_id = (int)$customer_id;
+        $session_id = (string)$session_id;
+        if ($session_id === '') { return; }
+        $table = chr(96) . DB_PREFIX . 'cart' . chr(96);
+        $where = "api_id='0' AND customer_id='" . $customer_id . "' AND session_id='" . $this->db->escape($session_id) . "'";
+        $idle = max(1, min(10080, (int)($this->config->get('codecart_abandoned_cart_idle_minutes') ?? 5)));
+        $days = max(1, min(30, (int)$this->config->get('codecart_abandoned_cart_days') ?: 7));
+        $eligible = $this->db->query('SELECT MAX(date_added) AS last_activity FROM ' . $table . ' WHERE ' . $where .
+            ' HAVING MAX(date_added) < DATE_SUB(NOW(),INTERVAL ' . $idle . ' MINUTE) AND MAX(date_added)>=DATE_SUB(NOW(),INTERVAL ' . $days . ' DAY)');
+        if (!$eligible->num_rows) { return; }
+        // Recheck within the DELETE query to avoid removing a cart that became active meanwhile.
+        $this->db->query('DELETE FROM ' . $table . ' WHERE ' . $where .
+            ' AND (SELECT 1 FROM (SELECT MAX(date_added) AS updated FROM ' . $table . ' WHERE ' . $where .
+            ') state WHERE state.updated < DATE_SUB(NOW(),INTERVAL ' . $idle . ' MINUTE) AND state.updated>=DATE_SUB(NOW(),INTERVAL ' . $days . ' DAY))=1');
+    }
+
+    public function clearAbandonedCarts() {
+        $table = chr(96) . DB_PREFIX . 'cart' . chr(96);
+        $idle = max(1, min(10080, (int)($this->config->get('codecart_abandoned_cart_idle_minutes') ?? 5)));
+        $days = max(1, min(30, (int)$this->config->get('codecart_abandoned_cart_days') ?: 7));
+        // A nested derived table prevents a MySQL update-target table conflict.
+        // Only whole abandoned carts in the selected history are removed.
+        $sql = 'DELETE FROM ' . $table . " WHERE api_id='0' AND cart_id IN ("
+            . 'SELECT cart_id FROM (SELECT c.cart_id FROM ' . $table . ' c JOIN ('
+            . 'SELECT customer_id, session_id FROM ' . $table . " WHERE api_id='0'"
+            . ' GROUP BY customer_id, session_id HAVING MAX(date_added) < DATE_SUB(NOW(), INTERVAL ' . $idle . ' MINUTE)'
+            . ' AND MAX(date_added) >= DATE_SUB(NOW(), INTERVAL ' . $days . ' DAY)'
+            . ') inactive ON inactive.customer_id=c.customer_id AND inactive.session_id=c.session_id'
+            . " WHERE c.api_id='0') nested)";
+        $this->db->query($sql);
+    }
+
+    public function getCartProducts($customer_id, $session_id) {
+        $customer_id = (int)$customer_id;
+        $session_id = (string)$session_id;
+
+        $sql = "SELECT c.cart_id,c.product_id,c.quantity,c.option,p.price,p.tax_class_id,p.image,pd.name " .
+               "FROM `" . DB_PREFIX . "cart` c " .
+               "LEFT JOIN `" . DB_PREFIX . "product` p ON (p.product_id=c.product_id) " .
+               "LEFT JOIN `" . DB_PREFIX . "product_description` pd ON (pd.product_id=c.product_id AND pd.language_id='" . (int)$this->config->get('config_language_id') . "') " .
+               "WHERE c.api_id='0' AND c.customer_id='" . $customer_id . "' AND c.session_id='" . $this->db->escape($session_id) . "' " .
+               "ORDER BY c.date_added,c.cart_id";
+
+        $rows = $this->db->query($sql)->rows;
+        if (!$rows) { return array(); }
+
+        $customer_group_id = $this->getCustomerGroupId($customer_id);
+        $quantities = array();
+        foreach ($rows as $row) {
+            $product_id = (int)$row['product_id'];
+            if (!isset($quantities[$product_id])) { $quantities[$product_id] = 0; }
+            $quantities[$product_id] += (int)$row['quantity'];
+        }
+
+        $ids = array_values(array_unique(array_map('intval', array_keys($quantities))));
+        $in = implode(',', $ids);
+        $discounts = array();
+        $specials = array();
+        if ($in !== '') {
+            $discountRows = $this->db->query("SELECT product_id,quantity,price FROM `" . DB_PREFIX . "product_discount` WHERE product_id IN (" . $in . ") AND customer_group_id='" . (int)$customer_group_id . "' AND date_start < NOW() AND (date_end < '1000-01-01' OR date_end > NOW()) ORDER BY product_id,quantity DESC,priority ASC,price ASC")->rows;
+            foreach ($discountRows as $discount) {
+                $pid = (int)$discount['product_id'];
+                if (!isset($discounts[$pid]) && (int)$discount['quantity'] <= (int)$quantities[$pid]) { $discounts[$pid] = (float)$discount['price']; }
+            }
+            $specialRows = $this->db->query("SELECT product_id,price FROM `" . DB_PREFIX . "product_special` WHERE product_id IN (" . $in . ") AND customer_group_id='" . (int)$customer_group_id . "' AND date_start < NOW() AND (date_end < '1000-01-01' OR date_end > NOW()) ORDER BY product_id,priority ASC,price ASC")->rows;
+            foreach ($specialRows as $special) {
+                $pid = (int)$special['product_id'];
+                if (!isset($specials[$pid])) { $specials[$pid] = (float)$special['price']; }
+            }
+        }
+        $optionIds = array();
+        $optionsByRow = array();
+        foreach ($rows as $index => $row) {
+            $options = json_decode((string)$row['option'], true);
+            if (!is_array($options)) { $options = array(); }
+            $optionsByRow[$index] = $options;
+            foreach ($options as $id => $value) {
+                if ((int)$id > 0) { $optionIds[(int)$id] = (int)$id; }
+            }
+        }
+        $optionTypes = array(); $optionPrices = array();
+        if ($optionIds) {
+            $optionList = implode(',', array_values($optionIds));
+            $types = $this->db->query("SELECT po.product_option_id,po.product_id,o.type FROM `" . DB_PREFIX . "product_option` po JOIN `" . DB_PREFIX . "option` o ON o.option_id=po.option_id WHERE po.product_option_id IN (" . $optionList . ")")->rows;
+            foreach ($types as $type) { $optionTypes[(int)$type['product_option_id']] = array('product_id'=>(int)$type['product_id'],'type'=>(string)$type['type']); }
+            $prices = $this->db->query("SELECT product_option_id,product_option_value_id,price,price_prefix FROM `" . DB_PREFIX . "product_option_value` WHERE product_option_id IN (" . $optionList . ")")->rows;
+            foreach ($prices as $priceRow) { $optionPrices[(int)$priceRow['product_option_id']][(int)$priceRow['product_option_value_id']] = $priceRow; }
+        }
+        foreach ($rows as $index => &$row) {
+            $product_id = (int)$row['product_id'];
+            $quantity = max(0, (int)$row['quantity']);
+            $price = (float)$row['price'];
+            if (isset($discounts[$product_id])) { $price = $discounts[$product_id]; }
+            if (isset($specials[$product_id])) { $price = $specials[$product_id]; }
+            $option_price = 0.0;
+            $option_price_equal = null;
+            foreach ($optionsByRow[$index] as $optionId => $value) {
+                $optionId = (int)$optionId;
+                if (!isset($optionTypes[$optionId]) || $optionTypes[$optionId]['product_id'] !== $product_id) { continue; }
+                $type = $optionTypes[$optionId]['type'];
+                $selected = ($type === 'checkbox' && is_array($value)) ? $value : ((($type === 'select' || $type === 'radio') && is_scalar($value)) ? array($value) : array());
+                foreach ($selected as $selectedId) {
+                    $valueId = (int)$selectedId;
+                    if (!isset($optionPrices[$optionId][$valueId])) { continue; }
+                    $record = $optionPrices[$optionId][$valueId];
+                    $optionCost = (float)$record['price'];
+                    if ($record['price_prefix'] === '+') { $option_price += $optionCost; }
+                    elseif ($record['price_prefix'] === '-') { $option_price -= $optionCost; }
+                    elseif ($type !== 'checkbox' && $record['price_prefix'] === '=') { $option_price_equal = $optionCost; }
+                }
+            }
+            $unit_price = $option_price_equal !== null ? $option_price_equal : ($price + $option_price);
+            $row['unit_price'] = \CodeCart\Core\Money::decimal($unit_price);
+            $row['line_total'] = \CodeCart\Core\Money::decimal(\CodeCart\Core\Money::multiply($row['unit_price'], $quantity));
+        }
+        unset($row);
+        return $rows;
+    }
+
+    private function getCustomerGroupId($customer_id) {
+        $customer_id = (int)$customer_id;
+        if ($customer_id > 0) {
+            $query = $this->db->query("SELECT customer_group_id FROM `" . DB_PREFIX . "customer` WHERE customer_id='" . $customer_id . "' LIMIT 1");
+            if ($query->num_rows) { return (int)$query->row['customer_group_id']; }
+        }
+        return (int)$this->config->get('config_customer_group_id');
+    }
+}

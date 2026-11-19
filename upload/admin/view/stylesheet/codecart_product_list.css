@@ -1,0 +1,436 @@
+/* CodeCart product list only. Do not style #content or the global admin sidebar. */
+#ccp-product-list .panel-body { padding: 10px; min-width: 0; }
+#ccp-product-list #form-product { min-width: 0; max-width: 100%; }
+#ccp-product-list .table-responsive {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+}
+#ccp-product-list .table {
+  width: 100%;
+  min-width: 850px;
+  table-layout: fixed;
+  border-top: 3px solid #0057d9;
+  margin-bottom: 14px;
+}
+#ccp-product-list .table > thead > tr > td {
+  padding: 7px 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-right: 1px solid var(--ccp-admin-border, #dce2eb);
+  vertical-align: middle;
+}
+#ccp-product-list .table > tbody > tr > td { padding: 6px 5px; vertical-align: middle; }
+
+/* Classes are assigned by header links at runtime. This stays correct when OCMOD
+   adds photo-count or other columns before the product name. */
+/* The stock product-list header has inline width:1px. Override it explicitly,
+   otherwise fixed table layout places checkboxes on top of the image column. */
+#ccp-product-list .table > thead > tr > td.ccp-col-select,
+#ccp-product-list .table > thead > tr > td:first-child {
+  width: 38px !important;
+  min-width: 38px;
+  max-width: 38px;
+  box-sizing: border-box;
+}
+#ccp-product-list .table > thead > tr > td:first-child,
+#ccp-product-list .table > tbody > tr > td:first-child {
+  text-align: center;
+  padding-left: 3px;
+  padding-right: 3px;
+}
+#ccp-product-list .table > thead > tr > td:first-child > input[type="checkbox"],
+#ccp-product-list .table > tbody > tr > td:first-child > input[type="checkbox"] {
+  display: block;
+  float: none;
+  width: 13px;
+  height: 13px;
+  margin: 2px auto 0;
+  box-sizing: border-box;
+}
+#ccp-product-list .table > thead > tr > td.ccp-col-image { width: 104px; }
+#ccp-product-list .table > thead > tr > td.ccp-col-photo { width: 68px; }
+#ccp-product-list .table > thead > tr > td.ccp-col-model { width: 90px; }
+#ccp-product-list .table > thead > tr > td.ccp-col-price { width: 116px; }
+#ccp-product-list .table > thead > tr > td.ccp-col-quantity { width: 88px; }
+#ccp-product-list .table > thead > tr > td.ccp-col-status { width: 70px; }
+#ccp-product-list .table > thead > tr > td.ccp-col-index { width: 93px; }
+#ccp-product-list .table > thead > tr > td.ccp-col-action { width: 91px; }
+#ccp-product-list .table > tbody > tr > td.ccp-product-name-cell,
+#ccp-product-list .table > tbody > tr > td.ccp-product-model-cell { overflow: hidden; }
+#ccp-product-list .ccp-product-name,
+#ccp-product-list .ccp-product-model {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#ccp-product-list .table > tbody > tr > td.ccp-col-action {
+  white-space: nowrap;
+  overflow: visible;
+}
+#ccp-product-list .table > tbody > tr > td.ccp-col-action > a.btn {
+  display: inline-block;
+  padding: 6px 7px;
+  margin: 0 1px;
+  line-height: 20px;
+  vertical-align: middle;
+}
+
+/* Standalone toolbar, without Bootstrap .row or .col-sm-* clearfix and float rules.
+   This prevents phantom flex children and unwanted padding at both edges. */
+#ccp-product-list .product-pagination-top {
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin: 0 0 10px;
+  padding: 0;
+}
+#ccp-product-list .product-pagination-pages {
+  flex: 0 1 auto;
+  min-width: 0;
+  margin-right: auto;
+  padding: 0;
+}
+#ccp-product-list .product-pagination-summary {
+  flex: 0 1 auto;
+  min-width: 0;
+  margin-left: auto;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  column-gap: 8px;
+  row-gap: 6px;
+  white-space: normal;
+  font-size: 13px;
+}
+#ccp-product-list .pagination { margin: 0; }
+#ccp-product-list .pagination > li > a,
+#ccp-product-list .pagination > li > span { padding: 6px 9px; }
+#ccp-product-list .ccp-products-limit-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+#ccp-product-list .ccp-products-limit-label select.form-control {
+  width: 66px;
+  height: 32px;
+  min-height: 32px;
+  padding: 4px 6px;
+  font-size: 13px;
+}
+@media (max-width: 1450px) {
+  #ccp-product-list .panel-body { padding: 8px; }
+  #ccp-product-list .table > thead > tr > td,
+  #ccp-product-list .table > tbody > tr > td { padding-left: 4px; padding-right: 4px; }
+  #ccp-product-list .table > thead > tr > td.ccp-col-image { width: 100px; }
+  #ccp-product-list .table > thead > tr > td.ccp-col-price { width: 108px; }
+  #ccp-product-list .table > thead > tr > td.ccp-col-model { width: 85px; }
+}
+@media (max-width: 767px) {
+  #ccp-product-list .product-pagination-pages,
+  #ccp-product-list .product-pagination-summary { flex-basis: 100%; }
+  #ccp-product-list .product-pagination-summary {
+    margin-left: 0;
+    justify-content: flex-start;
+    text-align: left;
+  }
+}
+
+/* Compact product filter. No redundant separator lines or oversized dropdowns. */
+#filter-product .panel { overflow: visible; }
+#filter-product .panel-heading { padding: 9px 12px; }
+#filter-product .panel-body { padding: 10px 12px; overflow: visible; }
+#filter-product .panel-body > .form-group {
+  margin: 0 0 9px !important;
+  padding: 0 !important;
+  border: 0 !important;
+}
+#filter-product .panel-body > .form-group:last-child { margin-bottom: 0 !important; }
+#filter-product .control-label { margin-bottom: 4px; font-size: 13px; }
+#filter-product .input-group { width: 100%; }
+#filter-product .input-group > .form-control {
+  height: 36px !important;
+  min-height: 36px !important;
+  padding: 6px 9px;
+  font-size: 13px;
+  box-sizing: border-box !important;
+}
+#filter-product .input-group > .input-group-btn > .btn {
+  display: inline-block;
+  width: 36px !important;
+  min-width: 36px !important;
+  height: 36px !important;
+  min-height: 36px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  line-height: 34px !important;
+  box-sizing: border-box !important;
+  vertical-align: top;
+  border-radius: 0 4px 4px 0 !important;
+}
+#filter-product #input-sub-category {
+  display: inline-block;
+  position: static;
+  width: 14px !important;
+  height: 14px !important;
+  min-height: 0 !important;
+  margin: 0 0 0 4px;
+  padding: 0;
+  vertical-align: -2px;
+}
+#filter-product .form-group > .row { margin-left: -4px; margin-right: -4px; }
+#filter-product .form-group > .row > [class*="col-"] { padding-left: 4px; padding-right: 4px; }
+#filter-product .input-group .dropdown-menu {
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+  max-height: 240px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  z-index: 1050;
+  padding: 4px 0;
+}
+#filter-product .input-group .dropdown-menu > li > a {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.4;
+  padding: 7px 10px;
+}
+
+/* The price column stays compact; the pencil and inline editor cannot collide
+   with quantity or action columns. All rules are scoped to Catalog > Products. */
+#ccp-product-list .ccp-qpe-price-cell { position: relative; }
+#ccp-product-list .ccp-qpe-display { display: inline-block; max-width: calc(100% - 20px); vertical-align: middle; }
+#ccp-product-list .ccp-qpe-old-price { display: block; text-decoration: line-through; }
+#ccp-product-list .ccp-qpe-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 19px;
+  height: 23px;
+  margin: 0 0 0 3px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #0460d7;
+  font-size: 14px;
+  vertical-align: middle;
+}
+#ccp-product-list .ccp-qpe-edit-btn:hover { color: #034aa6; }
+/* The editor is mounted on <body>, outside the table's fixed layout and
+   .table-responsive overflow. No input/buttons are ever injected into a cell. */
+/* Exact in-cell product editor: input and action icons appear over the
+   clicked value, on the same row, with zero impact on table column sizing. */
+#ccp-product-list td.ccp-qpe-price-cell,
+#ccp-product-list td.ccp-qpe-quantity-cell {
+  position: relative !important;
+}
+#ccp-product-list td.ccp-qpe-editing {
+  position: relative !important;
+  min-width: 0 !important;
+  overflow: visible !important;
+  background: #f6faff !important;
+}
+#ccp-product-list td.ccp-qpe-editing > :not(.ccp-qpe-inline-editor) {
+  visibility: hidden !important;
+}
+#ccp-product-list td.ccp-qpe-editing .ccp-qpe-inline-editor {
+  position: absolute !important;
+  top: 50% !important;
+  left: 1px !important;
+  right: 1px !important;
+  z-index: 90 !important;
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: nowrap !important;
+  gap: 2px !important;
+  width: auto !important;
+  min-width: 0 !important;
+  height: 31px !important;
+  margin: 0 !important;
+  padding: 2px !important;
+  transform: translateY(-50%) !important;
+  box-sizing: border-box !important;
+  border: 1px solid #98b6dd !important;
+  border-radius: 5px !important;
+  background: #fff !important;
+  box-shadow: 0 2px 6px rgba(20, 58, 106, .12) !important;
+}
+#ccp-product-list .ccp-qpe-inline-editor .ccp-qpe-inline-input {
+  display: block !important;
+  flex: 1 1 0% !important;
+  width: 1px !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  height: 24px !important;
+  min-height: 24px !important;
+  margin: 0 !important;
+  padding: 1px 2px !important;
+  border: 1px solid #b8c9dc !important;
+  border-radius: 3px !important;
+  background: #fff !important;
+  color: #233651 !important;
+  box-sizing: border-box !important;
+  text-align: right !important;
+  font-size: 11px !important;
+  line-height: 20px !important;
+  font-variant-numeric: tabular-nums;
+}
+#ccp-product-list .ccp-qpe-inline-editor .ccp-qpe-inline-input:focus {
+  border-color: #0b6fd3 !important;
+  outline: none !important;
+}
+#ccp-product-list .ccp-qpe-inline-editor .ccp-qpe-inline-input.ccp-qpe-invalid {
+  border-color: #d9534f !important;
+}
+#ccp-product-list .ccp-qpe-inline-editor > button {
+  display: inline-flex !important;
+  flex: 0 0 18px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 18px !important;
+  min-width: 18px !important;
+  max-width: 18px !important;
+  height: 24px !important;
+  min-height: 24px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 3px !important;
+  background: transparent !important;
+  font-size: 12px !important;
+  box-shadow: none !important;
+  cursor: pointer;
+}
+#ccp-product-list .ccp-qpe-inline-editor > .ccp-qpe-inline-save { color: #168347 !important; }
+#ccp-product-list .ccp-qpe-inline-editor > .ccp-qpe-inline-cancel { color: #c13434 !important; }
+#ccp-product-list .ccp-qpe-inline-editor > button:hover { background: #edf3fa !important; }
+#ccp-product-list .ccp-qpe-inline-editor > button:focus-visible { outline: 2px solid #0b6fd3 !important; }
+#ccp-product-list td.ccp-qpe-loading { opacity: .65; }
+#ccp-product-list .ccp-qpe-inline-editor.ccp-qpe-saving { opacity: .7; }
+#ccp-product-list .ccp-qpe-active { background-color: #f3f8ff !important; }
+#ccp-product-list .ccp-qpe-saved { background-color: #eaf8ee !important; }
+.ccp-qpe-notice {
+  position: fixed;
+  top: 70px;
+  right: 18px;
+  z-index: 11000;
+  max-width: 370px;
+  min-width: 220px;
+  box-shadow: 0 5px 20px rgba(0,0,0,.15);
+}
+@media(max-width:767px) { .ccp-qpe-notice { left: 12px; right: 12px; } }
+
+/* Fast catalog updates: quantity pencil + compact ON/OFF switches, no table resize. */
+#ccp-product-list .ccp-qpe-quantity-cell {
+  white-space: nowrap;
+  overflow: visible;
+  min-width: 0;
+}
+#ccp-product-list .ccp-qpe-price-cell { white-space: nowrap; }
+#ccp-product-list .ccp-qpe-quantity-cell .ccp-qpe-edit-btn {
+  width: 17px;
+  height: 20px;
+  font-size: 12px;
+}
+/* A true pill switch: the color/knob conveys status, not text in the cell.
+   Scoped to the product grid; neither global OpenCart buttons nor themes change. */
+#ccp-product-list td.ccp-qpf-switch-cell {
+  text-align: center !important;
+  vertical-align: middle !important;
+  padding: 5px 3px !important;
+}
+#ccp-product-list button.ccp-qpf-toggle {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  width: 48px !important;
+  min-width: 48px !important;
+  max-width: 48px !important;
+  height: 30px !important;
+  min-height: 30px !important;
+  margin: 0 !important;
+  padding: 3px !important;
+  border: 1px solid transparent !important;
+  border-radius: 16px !important;
+  background: transparent !important;
+  color: inherit !important;
+  font-size: 0 !important;
+  line-height: 1 !important;
+  box-shadow: none !important;
+  text-decoration: none !important;
+  vertical-align: middle !important;
+  cursor: pointer;
+  transition: background-color .18s ease;
+}
+#ccp-product-list button.ccp-qpf-toggle:hover { background: rgba(20, 85, 150, .07) !important; }
+#ccp-product-list button.ccp-qpf-toggle > .ccp-qpf-toggle-track {
+  position: relative !important;
+  display: block !important;
+  flex: none !important;
+  width: 38px !important;
+  min-width: 38px !important;
+  height: 21px !important;
+  border-radius: 12px !important;
+  background: #b7bfcb !important;
+  box-shadow: inset 0 1px 2px rgba(35, 47, 69, .12) !important;
+  transition: background-color .18s ease, box-shadow .18s ease;
+}
+#ccp-product-list button.ccp-qpf-toggle > .ccp-qpf-toggle-track > .ccp-qpf-toggle-knob {
+  position: absolute !important;
+  top: 2px !important;
+  left: 2px !important;
+  display: block !important;
+  width: 17px !important;
+  height: 17px !important;
+  border-radius: 50% !important;
+  border: none !important;
+  background: #fff !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .24) !important;
+  transition: transform .18s ease;
+}
+#ccp-product-list button.ccp-qpf-toggle.is-on > .ccp-qpf-toggle-track {
+  background: #24a35b !important;
+  box-shadow: inset 0 1px 2px rgba(0, 70, 26, .14) !important;
+}
+#ccp-product-list button.ccp-qpf-toggle.is-on > .ccp-qpf-toggle-track > .ccp-qpf-toggle-knob {
+  transform: translateX(17px) !important;
+}
+#ccp-product-list button.ccp-qpf-toggle:focus {
+  outline: 2px solid #0b6fd3 !important;
+  outline-offset: 1px;
+}
+#ccp-product-list button.ccp-qpf-toggle:focus:not(:focus-visible) { outline: none !important; }
+#ccp-product-list button.ccp-qpf-toggle.ccp-qpf-pending { opacity: .52; }
+#ccp-product-list button.ccp-qpf-toggle:disabled { cursor: wait; }
+@media (prefers-reduced-motion: reduce) {
+  #ccp-product-list button.ccp-qpf-toggle,
+  #ccp-product-list button.ccp-qpf-toggle > .ccp-qpf-toggle-track,
+  #ccp-product-list button.ccp-qpf-toggle > .ccp-qpf-toggle-track > .ccp-qpf-toggle-knob {
+    transition: none !important;
+  }
+}
