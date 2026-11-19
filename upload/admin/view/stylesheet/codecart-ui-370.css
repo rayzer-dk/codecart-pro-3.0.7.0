@@ -386,12 +386,16 @@ html.ccp-bs5-preview #header :is(.btn,.dropdown-toggle):focus-visible {
   outline: 2px solid var(--ccp-ui-focus, #1769aa);
   outline-offset: 2px;
 }
-html.ccp-bs5-preview #header :is(.btn-link,.dropdown-toggle) {
+html.ccp-bs5-preview #header :is(.btn-link,.nav > li > .dropdown-toggle) {
   min-height: 34px;
   color: var(--bs-body-color, #253044);
 }
-html.ccp-bs5-preview #header :is(.btn-link,.dropdown-toggle):hover {
+html.ccp-bs5-preview #header :is(.btn-link,.nav > li > .dropdown-toggle):hover {
   color: var(--ccp-ui-focus, #1769aa);
+}
+/* Buttons with explicit semantic backgrounds keep their own high-contrast labels. */
+html.ccp-bs5-preview #header :is(.btn-primary,.btn-success,.btn-danger,.btn-info).dropdown-toggle {
+  color: var(--bs-btn-color, #fff);
 }
 /* Preserve Bootstrap 3 menu icons; reduce conflicting Bootstrap 5 link defaults. */
 html.ccp-bs5-preview #column-left #menu .nav {
