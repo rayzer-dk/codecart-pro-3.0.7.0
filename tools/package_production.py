@@ -58,11 +58,11 @@ def build(root, output):
             if leaf.split('/')[0] in {'cache', 'logs', 'session', 'download', 'upload', 'modification'} and not leaf.endswith('/index.html'):
                 raise ValueError('Runtime data in package: ' + name)
     source = (root / 'upload/index.php').read_text(encoding='utf-8')
-    version = re.search(r"CODECART_PACKAGE_BUILD'\s*,\s*'([0-9]+\.[0-9]+\.[0-9]+)'", source)
+    version = re.search(r"CODECART_PACKAGE_BUILD'\s*,\s*'([0-9]+(?:\.[0-9]+){2,3})'", source)
     if not version:
         raise ValueError('Invalid package build')
     output.mkdir(parents=True, exist_ok=True)
-    archive = output / ('CodeCart-3.0.6-production-Build-' + version[1] + '.zip')
+    archive = output / ('CodeCart_PRO_' + version[1] + '_Full_Installable.zip')
     if archive.exists():
         raise ValueError('Refusing to overwrite an existing release: ' + str(archive))
     manifest = json.loads((root / 'upload/system/config/codecart_integrity.json').read_text(encoding='utf-8'))
