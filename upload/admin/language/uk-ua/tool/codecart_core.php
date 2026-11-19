@@ -133,7 +133,7 @@ $_['diag_unknown'] = 'невідомо';
 $_['diag_never'] = 'ніколи';
 $_['diag_not_configured'] = 'не налаштовано';
 $_['diag_check_failed'] = 'помилка перевірки';
-$_['diag_msg_php'] = 'Підтримується PHP 8.1–8.5 у WEB/FPM-профілі.';
+$_['diag_msg_php'] = 'Підтримується PHP 8.2–8.5 у WEB/FPM-профілі.';
 $_['diag_msg_required_ext'] = 'Обов’язкове PHP-розширення для WEB/FPM.';
 $_['diag_msg_required_image'] = 'Обов’язковий формат зображень.';
 $_['diag_msg_avif'] = 'Рекомендовано для нативної підтримки AVIF.';
@@ -434,8 +434,8 @@ $_['about_v_password_sha1'] = 'SHA-1 із сіллю';
 $_['about_v_tls_strict'] = 'TLS 1.2–1.3, перевірка сертифіката';
 $_['about_v_tls_starttls'] = 'STARTTLS, без мінімальної версії';
 $_['about_advantages'] = array(
-    'Працює на PHP 8.1–8.5. ocStore 3.0.3.7 заявляє PHP 5.4+, OpenCart 3.0.4.1 — PHP 7.3+.',
-    'Бібліотеки новіші, ніж у будь-якій з основ: Twig 3.30 проти 2.14 / 3.8 / 3.24, Guzzle 7.15 проти 5.3 / 6.5 / 7.10.',
+    'Працює на PHP 8.2–8.5. ocStore 3.0.3.7 заявляє PHP 5.4+, OpenCart 3.0.4.1 — PHP 7.3+.',
+    'Бібліотеки новіші, ніж у будь-якій з основ: Twig 3.30 проти 2.14 / 3.8 / 3.24, Guzzle 8.5.2 проти 5.3 / 6.5 / 7.10.',
     'Паролі адміністраторів хешуються password_hash() замість SHA-1 із сіллю, двофакторний вхід вбудовано. У жодній із трьох основ цього немає.',
     'Наявні розширення OpenCart 3 і далі працюють: аліаси класів Twig 2, jQuery Migrate, класи Font Awesome 4, OCMOD та події.',
     'Cron, черга, сповіщення, стан магазину, перевірка цілісності та модернізація БД входять до ядра, а не до окремих модулів.'
@@ -453,7 +453,7 @@ $_['about_added_items'] = array(
     'REST API v1 лише для читання (вимкнено за замовчуванням), кеш Redis/APCu/Memcached, зображення WebP/AVIF.'
 );
 $_['about_updated_items'] = array(
-    'PHP 8.1–8.5; Twig 3.30, Guzzle 7.15, scssphp 2.1.',
+    'PHP 8.2–8.5; Twig 3.30, Guzzle 8.5.2, scssphp 2.1.',
     'jQuery 3.7.1 скрізь, jQuery Migrate 3.4.1 для старих модулів.',
     'Font Awesome 7.3.1 Free; класи Font Awesome 4 і font-family FontAwesome працюють через вбудований шар сумісності.',
     'Summernote 0.9.1, HTML Purifier 4.19.0, PhotoSwipe 5.4.4 як альтернативна галерея.',
@@ -530,3 +530,11 @@ $_['entry_webmcp_origin_trial'] = 'Токен Chrome Origin Trial';
 $_['help_webmcp_origin_trial'] = 'Для локальної перевірки поле можна залишити порожнім. Для HTTPS вкажіть токен Chrome, виданий для домену цієї вітрини.';
 $_['text_webmcp_docs'] = 'Інструкція Chrome';
 $_['error_webmcp_origin_trial'] = 'Перевірте формат токена Chrome Origin Trial.';
+
+$_['cmp_migrate_modes'] = '3.6.0 (сумісність) / 4.0.2 (тестова міграція)';
+$_['cmp_jquery_modes'] = '3.8.0 (сумісність) / 4.1.0 (тестова міграція)';
+$_['cmp_bootstrap_modes'] = '3.4.1 (сумісність) / 5.3.9 (тестова міграція)';
+$_['cmp_codemirror_modes'] = '5.65.21 (legacy) / 6 (пілотна інтеграція)';
+$_['cmp_moment_modes'] = '2.30.1 (legacy) / 2.31.0 (план модернізації)';
+$_['cmp_datepicker_modes'] = 'Hybrid DateTimePicker 1.8.7 / Air Datepicker + Day.js (тестова міграція)';
+$_['cmp_fa_73'] = '7.3.1 + AUTO/Core/Full + сумісність з FA4';
