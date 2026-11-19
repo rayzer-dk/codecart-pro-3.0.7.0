@@ -37,6 +37,7 @@ jobs:
             experiments/bootstrap5-fa7/tools/store-header-browser-smoke.cjs \
             experiments/bootstrap5-fa7/tools/theme-color-mode-browser-smoke.cjs \
             experiments/bootstrap5-fa7/tools/sidebar-collapse-browser-smoke.cjs \
+            experiments/bootstrap5-fa7/tools/mega-menu-dropdown-browser-smoke.cjs \
             upload/admin/view/javascript/codecart-ui-370.js \
             upload/admin/view/javascript/codecart-header-overflow.js; do
               node --check "$test"
@@ -109,6 +110,8 @@ jobs:
         run: node experiments/bootstrap5-fa7/tools/header-overflow-browser-smoke.cjs
       - name: Stock storefront mobile header, search, cart and dark theme
         run: node experiments/bootstrap5-fa7/tools/store-header-browser-smoke.cjs
+      - name: Regress mega-menu overlay and legacy dropdowns on Bootstrap 5
+        run: node experiments/bootstrap5-fa7/tools/mega-menu-dropdown-browser-smoke.cjs
       - name: Verify Bootstrap 5 dark-mode variables and runtime switching
         run: node experiments/bootstrap5-fa7/tools/theme-color-mode-browser-smoke.cjs
       - name: Three-level admin sidebar native Bootstrap 5 collapse regression
