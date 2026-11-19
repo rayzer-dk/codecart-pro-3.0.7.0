@@ -53,13 +53,16 @@ jobs:
           for filename in ('upload/index.php','upload/admin/index.php'):
               p=Path(filename)
               s=p.read_text()
-              for old,new in (
-                  ("define('VERSION', '3.0.6.0');","define('VERSION', '3.0.7.0');"),
-                  ("define('CODECART_BUILD', '3.0.6.0');","define('CODECART_BUILD', '3.0.7.0');"),
-                  ("define('CODECART_BASE', 'CodeCart PRO 3.0.6.0');","define('CODECART_BASE', 'CodeCart PRO 3.0.7.0');")
+              import re
+              for key,value in (
+                  ('VERSION','3.0.7.0'),
+                  ('CODECART_BUILD','3.0.7.0'),
+                  ('CODECART_PACKAGE_BUILD','3.0.7.0'),
+                  ('CODECART_BASE','CodeCart PRO 3.0.7.0')
               ):
-                  if old not in s: raise SystemExit('Missing release constant in '+filename+': '+old)
-                  s=s.replace(old,new,1)
+                  pattern=r"define\\('"+key+r"',\\s*'[^']*'\\);"
+                  s,count=re.subn(pattern,"define('"+key+"', '"+value+"');",s,count=1)
+                  if count != 1: raise SystemExit('Missing '+key+' in '+filename)
               p.write_text(s)
           p=Path('composer.json')
           d=json.loads(p.read_text())
@@ -94,6 +97,12 @@ jobs:
               if p.exists():
                   s=p.read_text().replace('Font Awesome 6.7.2','Font Awesome 7.3.1')
                   p.write_text(s)
+          Path('README.md').write_text(
+            '# CodeCart PRO 3.0.7.0\\n\\n'
+            'OpenCart/ocStore 3.x-based commerce system.\\n\\n'
+            'This branch combines legacy fixes with the experimental modern stack. '
+            'The release is not production-certified until the full QA and module/checkout regression passes.\\n'
+          )
           Path('documentation/MIGRATION_307_STATUS.md').write_text(
             '# CodeCart PRO 3.0.7.0\n\n'
             'Source: CodeCart-3-0-6 main and feature/codecart-3.7.0-modernization.\n'
