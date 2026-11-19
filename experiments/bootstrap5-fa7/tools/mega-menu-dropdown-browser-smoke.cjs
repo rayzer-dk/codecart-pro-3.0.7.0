@@ -45,7 +45,12 @@ async function run(){
       noOverflow:document.documentElement.scrollWidth<=innerWidth+1};
    });
    assert.equal(before.noOverflow,true,'Header overflow at '+width);
-   assert.equal(before.panelDisplay,'none','Mega menu must initially be hidden at '+width);
+   if(width>=992) {
+    assert.equal(before.panelDisplay,'none','Mega menu must initially be hidden at '+width);
+   } else {
+    assert.equal(await page.locator('.ccp-horizontal-desktop').isVisible(),false,
+      'Desktop mega menu must be hidden on mobile at '+width);
+   }
    if(width>=992){
     assert.equal(before.row,'row','Desktop category links must form a horizontal row at '+width);
     assert.ok(before.navHeight<110,'Blue navigation expanded vertically at '+width+' height '+before.navHeight);
