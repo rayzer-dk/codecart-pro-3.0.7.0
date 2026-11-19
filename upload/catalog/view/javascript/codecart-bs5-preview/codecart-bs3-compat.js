@@ -57,6 +57,11 @@
         if (el.hasAttribute('data-original-title') && !el.hasAttribute('title')) {
             el.setAttribute('title',el.getAttribute('data-original-title'));
         }
+        // OpenCart already renders its own caret icon; BS5 otherwise adds a second arrow.
+        if (el.matches('.dropdown-toggle') &&
+            el.querySelector('.caret,.fa-caret-down,.fa-chevron-down,.fa-angle-down,.ccp-blog-menu-caret')) {
+            el.classList.add('ccp-explicit-caret');
+        }
         if (el.matches('.dropdown-menu>li>a')) el.classList.add('dropdown-item');
         if (el.matches('.pagination>li>a,.pagination>li>span')) el.classList.add('page-link');
         if (el.matches('.nav-tabs>li>a,.nav-pills>li>a')) {
