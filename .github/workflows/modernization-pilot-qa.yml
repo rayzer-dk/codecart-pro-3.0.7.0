@@ -47,6 +47,8 @@ jobs:
           php tools/check_unishop2_compat.php
           php tools/qa_unishop2_ocmod.php
           php tools/qa_unishop2_369.php
+      - name: Core/About versions and localization contracts
+        run: php tools/qa_core_about_versions.php
       - name: Composer manifest and lock validity
         run: composer validate --no-check-publish
 
