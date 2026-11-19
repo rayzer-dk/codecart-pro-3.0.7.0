@@ -19,7 +19,7 @@
     "scssphp/scssphp": "2.1.0",
     "scssphp/source-span": "1.1.0",
     "symfony/deprecation-contracts": "3.8.1",
-    "symfony/filesystem": "^7.4",
+    "symfony/filesystem": "^8.1",
     "symfony/polyfill-ctype": "1.37.0",
     "symfony/polyfill-mbstring": "1.43.3",
     "symfony/polyfill-php80": "1.43.0",
