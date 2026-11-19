@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 $root = dirname(__DIR__);
+require_once $root . '/upload/system/library/codecart/src/CompatibilityAdapterInterface.php';
 require_once $root . '/upload/system/library/codecart/src/Unishop2Compatibility.php';
 $path = 'catalog/model/catalog/product.php';
 $anchor = 'if (isset($data[\'sort\']) && in_array($data[\'sort\'], $sort_data)) {';
