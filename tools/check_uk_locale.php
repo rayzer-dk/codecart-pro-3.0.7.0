@@ -8,6 +8,9 @@ $allowedFiles = array(
     'admin/view/javascript/codecart-admin-ui.js',
     'system/helper/general.php',
     'system/library/codecart/src/RelationLayer.php',
+    // Calendar locales contain multilingual data tables, not hardcoded active UI strings.
+    'admin/view/javascript/codecart-datepicker-next/codecart-date-bridge.js',
+    'catalog/view/javascript/codecart-datepicker-next/codecart-date-bridge.js',
     // Multilingual search synonym dictionaries (matching data, not rendered UI text).
     'admin/model/search/settings.php',
     'admin/controller/search/search.php'
