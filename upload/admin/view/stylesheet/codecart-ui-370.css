@@ -221,6 +221,15 @@ html.ccp-bs5-preview #content.ccp-ui-settings .nav-tabs > li > a {
 html.ccp-bs5-preview #content.ccp-ui-order-info .row > [class*="col-"] {
   min-width: 0;
 }
+html.ccp-bs5-preview #content.ccp-ui-order-info .panel-body > .row {
+  /* Bootstrap 5 negative row gutters overflow legacy OpenCart panel bodies. */
+  margin-inline: 0;
+  max-width: 100%;
+}
+html.ccp-bs5-preview #content.ccp-ui-order-info .panel-body > .row > [class*="col-"] {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
 html.ccp-bs5-preview #content.ccp-ui-order-info .panel-heading .panel-title {
   display: flex;
   align-items: center;
