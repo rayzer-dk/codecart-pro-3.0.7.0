@@ -269,7 +269,7 @@ $_['text_icon_line'] = 'Рядок';
 $_['text_icon_kind'] = 'Тип';
 $_['text_icon_resolution'] = 'Рішення';
 $_['text_icon_resolution_full'] = 'Є у Full Free';
-$_['text_icon_resolution_unresolved'] = 'Іконки немає у Font Awesome Free 6.7.2. Можлива помилка у назві або PRO-only іконка; Full Compatibility її не відобразить.';
+$_['text_icon_resolution_unresolved'] = 'Іконки немає у Font Awesome Free 7.3.1. Можлива помилка у назві або PRO-only іконка; Full Compatibility її не відобразить.';
 $_['text_icon_unresolved'] = 'Недоступно у Free';
 $_['text_icon_no_unknown'] = 'Усі знайдені іконки підтримуються мінімальним Core-пакетом.';
 $_['text_icon_fallback_full'] = 'Виявлено іконки поза Core: у режимі AUTO вітрина використовує Full Compatibility, тому іконки не зникають.';
@@ -282,7 +282,7 @@ $_['text_icon_scan_complete'] = 'Перевірку іконок заверше�
 $_['text_icon_core_package'] = 'Core / Мінімальний';
 $_['text_icon_full_package'] = 'Повний Free';
 $_['text_icon_core_package_help'] = 'Core — легкий мінімальний набір, який реально завантажується на вітрині в режимі Core/AUTO. AUTO переходить на Full, якщо встановленому розширенню потрібна іконка поза Core.';
-$_['text_icon_full_package_help'] = 'Повний каталог Font Awesome Free 6.7.2. Перегляд повного каталогу не змушує вітрину завантажувати весь пакет — це довідник і копіювання класів.';
+$_['text_icon_full_package_help'] = 'Повний каталог Font Awesome Free 7.3.1. Перегляд повного каталогу не змушує вітрину завантажувати весь пакет — це довідник і копіювання класів.';
 $_['text_icon_full_count'] = 'Іконок у повному Free';
 $_['text_icon_styles'] = 'Стилі';
 
@@ -454,10 +454,10 @@ $_['about_added_items'] = array(
 );
 $_['about_updated_items'] = array(
     'PHP 8.2–8.5; Twig 3.30, Guzzle 8.5.2, scssphp 2.1.',
-    'jQuery 3.7.1 скрізь, jQuery Migrate 3.4.1 для старих модулів.',
+    'jQuery 4.1.0 і Migrate 4.0.2 за замовчуванням; jQuery 3.8.0 і Migrate 3.6.0 — резервна сумісність.',
     'Font Awesome 7.3.1 Free; класи Font Awesome 4 і font-family FontAwesome працюють через вбудований шар сумісності.',
     'Summernote 0.9.1, HTML Purifier 4.19.0, PhotoSwipe 5.4.4 як альтернативна галерея.',
-    'Поля дат на вітрині використовують вбудований вибір дати; moment.js і bootstrap-datetimepicker залишено лише для сторонніх модулів.',
+    'Hybrid DateTimePicker 1.8.7; Air Datepicker 3.6.0 і Day.js 1.11.23 — тестовий режим, Moment.js 2.31.0 — для legacy.',
     'Нові встановлення використовують utf8mb4 та InnoDB; модернізатор БД переводить старі таблиці після резервної копії.',
     'Installer UPDATE оновлює наявні магазини версіонованими міграціями з перевіркою схеми.'
 );
@@ -476,7 +476,7 @@ $_['about_security_items'] = array(
     'SMTP і вбудовані HTTP-інтеграції (PayPal, курси валют, Google, Turnstile) вимагають TLS 1.2+ з перевіркою сертифіката.'
 );
 $_['about_removed_items'] = array(
-    'Файли шрифтів Font Awesome 4 (використовуються веб-шрифти Font Awesome 6, класи FA4 зіставлено) і бібліотека jQuery 2.1.1 (заглушка в 1 КБ зі старою назвою файлу підключає jQuery 3.7.1 з jQuery Migrate 3.4.1 для тем, які на неї посилаються).',
+    'Шрифти FA4 замінено сумісністю з Font Awesome 7.3.1; старі версії jQuery і Bootstrap залишено як окремий резервний режим для модулів.',
     'Застарілий php.ini у корені сайту (видаліть його на наявних сайтах).',
     'Дубльований крок оновлення 3054 і старі дії імпорту каталогу в «Інструменти → Резервне копіювання».'
 );
@@ -509,7 +509,7 @@ $_['cmp_modern'] = 'PSR-4 / сервіси / маніфести / точки р�
 $_['cmp_spam_scope'] = 'контакти / відгуки / реєстрація / відновлення пароля / повернення / GDPR';
 $_['cmp_form_specific'] = 'окремо для кожної форми';
 $_['cmp_core_dashboard'] = 'Дашборд ядра';
-$_['cmp_legacy_assets'] = 'не використовується дашбордом ядра; legacy-файли збережено';
+$_['cmp_legacy_assets'] = 'Панель ядра не використовує Flot або jQVMap; Flot 4.2.6 / jQVMap 1.5.1 залишено для модулів';
 $_['cmp_slider'] = 'Слайдер CodeCart PRO; Swiper 3 як legacy';
 $_['cmp_jquery_legacy'] = '3.7.1 (legacy-ядро)';
 $_['cmp_bootstrap_legacy'] = '3.4.1 (legacy-ядро)';
@@ -520,7 +520,7 @@ $_['cmp_seo'] = 'SeoPro + мовні префікси + політика canonic
 $_['cmp_images'] = 'JPEG/PNG/WebP/AVIF + безпечний fallback';
 $_['cmp_cache'] = 'File / APCu / Memcached / Redis + fallback';
 $_['cmp_file'] = 'Файли';
-$_['cmp_fa'] = '6.7.2 + AUTO/Core/Full + сумісність із FA4';
+$_['cmp_fa'] = '7.3.1 + AUTO/Core/Full + FA4';
 $_['cmp_summernote'] = 'Summernote 0.9.1 локально';
 
 $_['text_ai_ready'] = 'AI Ready / WebMCP';
@@ -531,10 +531,10 @@ $_['help_webmcp_origin_trial'] = 'Для локальної перевірки �
 $_['text_webmcp_docs'] = 'Інструкція Chrome';
 $_['error_webmcp_origin_trial'] = 'Перевірте формат токена Chrome Origin Trial.';
 
-$_['cmp_migrate_modes'] = '3.6.0 (сумісність) / 4.0.2 (тестова міграція)';
-$_['cmp_jquery_modes'] = '3.8.0 (сумісність) / 4.1.0 (тестова міграція)';
-$_['cmp_bootstrap_modes'] = '3.4.1 (сумісність) / 5.3.9 (тестова міграція)';
-$_['cmp_codemirror_modes'] = '5.65.21 (legacy) / 6 (пілотна інтеграція)';
-$_['cmp_moment_modes'] = '2.30.1 (legacy) / 2.31.0 (план модернізації)';
-$_['cmp_datepicker_modes'] = 'Hybrid DateTimePicker 1.8.7 / Air Datepicker + Day.js (тестова міграція)';
+$_['cmp_migrate_modes'] = '4.0.2 (основний) / 3.6.0 (резервний)';
+$_['cmp_jquery_modes'] = '4.1.0 (основний) / 3.8.0 (резервний)';
+$_['cmp_bootstrap_modes'] = '5.3.9 (основний) / 3.4.1 (резервний)';
+$_['cmp_codemirror_modes'] = '6 (редактори) / 5.65.21 (legacy)';
+$_['cmp_moment_modes'] = '2.31.0 (legacy)';
+$_['cmp_datepicker_modes'] = 'Hybrid DateTimePicker 1.8.7 / Air Datepicker 3.6.0 + Day.js 1.11.23 (тестовий режим)';
 $_['cmp_fa_73'] = '7.3.1 + AUTO/Core/Full + сумісність з FA4';
