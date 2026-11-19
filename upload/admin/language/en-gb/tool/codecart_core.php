@@ -269,7 +269,7 @@ $_['text_icon_line'] = 'Line';
 $_['text_icon_kind'] = 'Type';
 $_['text_icon_resolution'] = 'Resolution';
 $_['text_icon_resolution_full'] = 'Available in Full Free';
-$_['text_icon_resolution_unresolved'] = 'Not present in Font Awesome Free 6.7.2. Possible typo or PRO-only icon; Full Compatibility cannot render it.';
+$_['text_icon_resolution_unresolved'] = 'Not present in Font Awesome Free 7.3.1. Possible typo or PRO-only icon; Full Compatibility cannot render it.';
 $_['text_icon_unresolved'] = 'Unavailable in Free';
 $_['text_icon_no_unknown'] = 'All detected icons are supported by the lightweight Core bundle.';
 $_['text_icon_fallback_full'] = 'Icons outside Core were detected: AUTO uses Full Compatibility so no icon disappears.';
@@ -282,7 +282,7 @@ $_['text_icon_scan_complete'] = 'Icon scan completed: %d files, %d icons outside
 $_['text_icon_core_package'] = 'Core / Minimal';
 $_['text_icon_full_package'] = 'Full Free';
 $_['text_icon_core_package_help'] = 'The Core package is the lightweight icon subset actually used on the storefront in Core/AUTO mode. AUTO switches to Full when an installed extension needs an icon outside Core.';
-$_['text_icon_full_package_help'] = 'Full Font Awesome Free 6.7.2 catalog. Browsing this list does not make the storefront load the full package; it is a reference/copy catalog.';
+$_['text_icon_full_package_help'] = 'Full Font Awesome Free 7.3.1 catalog. Browsing this list does not make the storefront load the full package; it is a reference/copy catalog.';
 $_['text_icon_full_count'] = 'Icons in Full Free';
 $_['text_icon_styles'] = 'Styles';
 
@@ -454,10 +454,10 @@ $_['about_added_items'] = array(
 );
 $_['about_updated_items'] = array(
     'PHP 8.2–8.5; Twig 3.30, Guzzle 8.5.2, scssphp 2.1.',
-    'jQuery 3.7.1 everywhere, jQuery Migrate 3.4.1 for legacy modules.',
+    'jQuery 4.1.0 and Migrate 4.0.2 by default; jQuery 3.8.0 and Migrate 3.6.0 remain a compatibility fallback.',
     'Font Awesome 7.3.1 Free; Font Awesome 4 class names and font-family FontAwesome keep working through the bundled compatibility layer.',
     'Summernote 0.9.1, HTML Purifier 4.19.0, PhotoSwipe 5.4.4 as an alternative gallery.',
-    'Storefront date fields use the built-in date picker; moment.js and bootstrap-datetimepicker stay only for third-party modules.',
+    'Hybrid DateTimePicker 1.8.7; Air Datepicker 3.6.0 and Day.js 1.11.23 are opt-in, Moment.js 2.31.0 is legacy.',
     'New installs use utf8mb4 and InnoDB; the database modernizer converts old tables after a backup.',
     'Installer UPDATE upgrades existing stores with versioned migrations and a schema check.'
 );
@@ -476,7 +476,7 @@ $_['about_security_items'] = array(
     'SMTP and bundled HTTP integrations (PayPal, currency rates, Google, Turnstile) require TLS 1.2+ with certificate verification.'
 );
 $_['about_removed_items'] = array(
-    'Font Awesome 4 font files (Font Awesome 6 webfonts are used, FA4 class names are mapped) and the jQuery 2.1.1 library (a 1 KB stub with the old file name loads jQuery 3.7.1 with jQuery Migrate 3.4.1 for themes that still link to it).',
+    'FA4 fonts were replaced with Font Awesome 7.3.1 compatibility; older jQuery and Bootstrap remain available as an isolated fallback for extensions.',
     'Legacy php.ini in the web root (delete it from existing sites).',
     'Duplicate upgrade step 3054 and legacy catalog import actions in Tools → Backup.'
 );
@@ -509,7 +509,7 @@ $_['cmp_modern'] = 'PSR-4 / Services / Manifest / Extension Points';
 $_['cmp_spam_scope'] = 'contact / reviews / registration / forgotten / returns / GDPR';
 $_['cmp_form_specific'] = 'form-specific';
 $_['cmp_core_dashboard'] = 'Core Dashboard';
-$_['cmp_legacy_assets'] = 'not used by Core Dashboard; Legacy assets retained';
+$_['cmp_legacy_assets'] = 'Core Dashboard does not use Flot or jQVMap; Flot 4.2.6 / jQVMap 1.5.1 are bundled for extensions';
 $_['cmp_slider'] = 'CodeCart PRO Slider; Swiper 3 Legacy';
 $_['cmp_jquery_legacy'] = '3.7.1 Legacy Core';
 $_['cmp_bootstrap_legacy'] = '3.4.1 Legacy Core';
@@ -520,7 +520,7 @@ $_['cmp_seo'] = 'SeoPro + language prefixes + canonical/faceted policy';
 $_['cmp_images'] = 'JPEG/PNG/WebP/AVIF + safe fallback';
 $_['cmp_cache'] = 'File / APCu / Memcached / Redis + fallback';
 $_['cmp_file'] = 'File';
-$_['cmp_fa'] = '6.7.2 + AUTO/Core/Full + FA4 compatibility';
+$_['cmp_fa'] = '7.3.1 + AUTO/Core/Full + FA4';
 $_['cmp_summernote'] = 'Summernote 0.9.1 local';
 
 $_['text_ai_ready'] = 'AI Ready / WebMCP';
@@ -531,10 +531,10 @@ $_['help_webmcp_origin_trial'] = 'Optional for local testing. On HTTPS, paste th
 $_['text_webmcp_docs'] = 'Chrome setup instructions';
 $_['error_webmcp_origin_trial'] = 'Enter a valid Chrome Origin Trial token format.';
 
-$_['cmp_migrate_modes'] = '3.6.0 (compatibility) / 4.0.2 (migration preview)';
-$_['cmp_jquery_modes'] = '3.8.0 (compatibility) / 4.1.0 (migration preview)';
-$_['cmp_bootstrap_modes'] = '3.4.1 (compatibility) / 5.3.9 (migration preview)';
-$_['cmp_codemirror_modes'] = '5.65.21 (legacy) / 6 (pilot integration)';
-$_['cmp_moment_modes'] = '2.30.1 (legacy) / 2.31.0 (planned upgrade)';
-$_['cmp_datepicker_modes'] = 'Hybrid DateTimePicker 1.8.7 / Air Datepicker + Day.js (migration preview)';
+$_['cmp_migrate_modes'] = '4.0.2 (default) / 3.6.0 (fallback)';
+$_['cmp_jquery_modes'] = '4.1.0 (default) / 3.8.0 (fallback)';
+$_['cmp_bootstrap_modes'] = '5.3.9 (default) / 3.4.1 (fallback)';
+$_['cmp_codemirror_modes'] = '6 (editors) / 5.65.21 (legacy)';
+$_['cmp_moment_modes'] = '2.31.0 (legacy)';
+$_['cmp_datepicker_modes'] = 'Hybrid DateTimePicker 1.8.7 / Air Datepicker 3.6.0 + Day.js 1.11.23 (opt-in)';
 $_['cmp_fa_73'] = '7.3.1 + AUTO/Core/Full + FA4 compatibility';
