@@ -1,0 +1,76 @@
+name: Legacy PHPStan model resolution
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  model-types:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring,dom,xml,tokenizer,zip
+          coverage: none
+          tools: composer:v2
+      - name: Install isolated analysis tools
+        run: composer install --working-dir=tools/quality --no-interaction --prefer-dist --no-progress
+      - name: Install locked runtime dependencies for symbol discovery
+        run: composer install --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader
+      - name: Generate separate admin and storefront model type maps
+        run: |
+          php -l tools/quality/generate_phpstan_models.php
+          php tools/quality/generate_phpstan_models.php catalog
+          php tools/quality/generate_phpstan_models.php admin
+          php -l build/phpstan-stubs/catalog.stub
+          php -l build/phpstan-stubs/admin.stub
+          grep -q 'model_catalog_product' build/phpstan-stubs/catalog.stub
+      - name: Verify actual methods, without permissive undefined-property ignore
+        shell: bash
+        run: |
+          set -euo pipefail
+          tools/quality/vendor/bin/phpstan analyse \
+            -c phpstan.codecart.catalog.neon.dist \
+            tools/quality/fixtures/catalog_valid.php --no-progress --memory-limit=2G
+          set +e
+          output=$(tools/quality/vendor/bin/phpstan analyse \
+            -c phpstan.codecart.catalog.neon.dist \
+            tools/quality/fixtures/catalog_invalid.php \
+            --no-progress --memory-limit=2G --error-format=raw 2>&1)
+          status=$?
+          set -e
+          echo "$output"
+          test "$status" -ne 0
+          grep -q 'getProductsCustomFilterNonExistent' <<< "$output"
+          grep -q 'setOuput' <<< "$output"
+      - name: Validate PHPCS security rules
+        run: tools/quality/vendor/bin/phpcs --standard=phpcs.xml.dist tools/quality/fixtures/catalog_valid.php
+      - name: Check changed first-party PHP sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -d '' -t changed < <(git diff --name-only -z --diff-filter=ACM HEAD^ HEAD -- upload)
+          for file in "${changed[@]}"; do
+            [[ "$file" == *.php ]] || continue
+            [[ "$file" =~ ^upload/(admin|catalog)/(controller|model)/ ]] || [[ "$file" =~ ^upload/system/(engine|library)/ ]] || continue
+            [[ "$file" == *"/vendor/"* ]] && continue
+            php tools/quality/source_guard.php --check "$file"
+            php -l "$file"
+            tools/quality/vendor/bin/phpcs --standard=phpcs.xml.dist "$file"
+          done
+      - name: Full legacy PHPStan scan
+        shell: bash
+        run: |
+          status=0
+          tools/quality/vendor/bin/phpstan analyse -c phpstan.codecart.catalog.neon.dist --no-progress --memory-limit=2G || status=1
+          tools/quality/vendor/bin/phpstan analyse -c phpstan.codecart.admin.neon.dist --no-progress --memory-limit=2G || status=1
+          exit "$status"

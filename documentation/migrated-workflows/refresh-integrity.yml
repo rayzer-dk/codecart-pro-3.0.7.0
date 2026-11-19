@@ -1,0 +1,36 @@
+name: Refresh Integrity Manifest
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/refresh-integrity.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Refresh manifest
+        run: php tools/refresh_integrity.php
+      - name: Commit manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "CodeCart Integrity Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add upload/system/config/codecart_integrity.json
+          if git diff --cached --quiet; then
+            echo "Manifest already current."
+            exit 0
+          fi
+          git commit -m "Refresh CodeCart integrity manifest"
+          git pull --rebase origin main
+          git push

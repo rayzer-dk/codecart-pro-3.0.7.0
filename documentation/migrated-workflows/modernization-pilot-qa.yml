@@ -1,0 +1,226 @@
+name: CodeCart PRO 3.7.0 Modernization QA
+on:
+  push:
+    branches:
+      - feature/codecart-3.7.0-modernization
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static-check:
+    name: Preview assets, JavaScript and PHP syntax
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check source and assets
+        run: node experiments/bootstrap5-fa7/tools/check-preview.cjs
+      - name: Validate JavaScript smoke test syntax before Chromium
+        run: |
+          for test in \
+            experiments/bootstrap5-fa7/tools/ui-foundation-browser-smoke.cjs \
+            experiments/bootstrap5-fa7/tools/ui-batch3-browser-smoke.cjs \
+            experiments/bootstrap5-fa7/tools/header-overflow-browser-smoke.cjs \
+            experiments/bootstrap5-fa7/tools/store-header-browser-smoke.cjs \
+            experiments/bootstrap5-fa7/tools/theme-color-mode-browser-smoke.cjs \
+            experiments/bootstrap5-fa7/tools/sidebar-collapse-browser-smoke.cjs \
+            upload/admin/view/javascript/codecart-ui-370.js \
+            upload/admin/view/javascript/codecart-header-overflow.js; do
+              node --check "$test"
+          done
+      - name: Inventory remaining Bootstrap 3 dependencies
+        run: node experiments/bootstrap5-fa7/tools/audit-bootstrap5-migration.cjs
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer:2.11.2
+      - name: PHP syntax - all core PHP files
+        run: |
+          find upload tools -type f -name '*.php' ! -path '*/vendor/*' -print0 | xargs -0 -n1 -P4 php -l >/tmp/codecart-php-lint.log
+          tail -n 5 /tmp/codecart-php-lint.log
+      - name: UniShop2 source compatibility contracts
+        run: |
+          php tools/check_unishop2_compat.php
+          php tools/qa_unishop2_ocmod.php
+          php tools/qa_unishop2_369.php
+      - name: Composer manifest and lock validity
+        run: composer validate --no-check-publish
+
+  vendor-build:
+    name: Build and test Day.js / Air Datepicker bridge
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Build isolated vendor distributions
+        working-directory: experiments/bootstrap5-fa7
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build:vendor
+      - name: Recheck assets
+        run: node experiments/bootstrap5-fa7/tools/check-preview.cjs
+      - name: Prepare Chromium for isolated UI tests
+        working-directory: experiments/bootstrap5-fa7
+        run: |
+          if command -v google-chrome >/dev/null 2>&1 || command -v google-chrome-stable >/dev/null 2>&1 || command -v chromium >/dev/null 2>&1; then
+            echo 'Using preinstalled browser on GitHub Runner'
+          else
+            npx playwright install chromium
+          fi
+      - name: Browser smoke tests, phone and desktop
+        run: node experiments/bootstrap5-fa7/tools/datepicker-browser-smoke.cjs
+      - name: Browser smoke tests, Bootstrap 5 admin/store legacy components
+        run: node experiments/bootstrap5-fa7/tools/bootstrap5-browser-smoke.cjs
+      - name: Verify Bootstrap 5 Summernote build
+        run: |
+          test -s upload/admin/view/javascript/codecart-bs5-preview/summernote-bs5.min.js
+          test -s upload/admin/view/javascript/codecart-bs5-preview/summernote-bs5.min.css
+          test -s upload/admin/view/javascript/codecart-bs5-preview/font/summernote.woff2
+      - name: Summernote Bootstrap 5 browser smoke
+        run: node experiments/bootstrap5-fa7/tools/summernote-browser-smoke.cjs
+      - name: Modern deps jQuery4, CodeMirror6 and Flot browser smoke
+        run: node experiments/bootstrap5-fa7/tools/modern-deps-browser-smoke.cjs
+      - name: CodeCart 3.7.0 UI foundation mobile / dark regression
+        run: node experiments/bootstrap5-fa7/tools/ui-foundation-browser-smoke.cjs
+      - name: Full admin and storefront UI batch regression (3 viewports)
+        run: node experiments/bootstrap5-fa7/tools/ui-batch3-browser-smoke.cjs
+      - name: Mobile header keyboard and extension icon overflow regression
+        run: node experiments/bootstrap5-fa7/tools/header-overflow-browser-smoke.cjs
+      - name: Stock storefront mobile header, search, cart and dark theme
+        run: node experiments/bootstrap5-fa7/tools/store-header-browser-smoke.cjs
+      - name: Verify Bootstrap 5 dark-mode variables and runtime switching
+        run: node experiments/bootstrap5-fa7/tools/theme-color-mode-browser-smoke.cjs
+      - name: Three-level admin sidebar native Bootstrap 5 collapse regression
+        run: node experiments/bootstrap5-fa7/tools/sidebar-collapse-browser-smoke.cjs
+      - name: Legacy Datepicker smoke under jQuery 4
+        env:
+          CCP_JQUERY_SERIES: '4'
+        run: node experiments/bootstrap5-fa7/tools/datepicker-browser-smoke.cjs
+      - name: Bootstrap 5 smoke under jQuery 4
+        env:
+          CCP_JQUERY_SERIES: '4'
+        run: node experiments/bootstrap5-fa7/tools/bootstrap5-browser-smoke.cjs
+      - name: Summernote smoke under jQuery 4
+        env:
+          CCP_JQUERY_SERIES: '4'
+        run: node experiments/bootstrap5-fa7/tools/summernote-browser-smoke.cjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CodeCart-modern-vendor-preview
+          path: |
+            upload/admin/view/javascript/codecart-datepicker-next/dayjs-with-parse.min.js
+            upload/catalog/view/javascript/codecart-datepicker-next/dayjs-with-parse.min.js
+            upload/admin/view/javascript/codecart-bs5-preview/summernote-bs5.min.js
+            upload/admin/view/javascript/codecart-bs5-preview/summernote-bs5.min.css
+            experiments/bootstrap5-fa7/generated
+            upload/admin/view/javascript/codecart-modern
+          if-no-files-found: error
+
+  e2e-suite-discovery:
+    name: Inventory all Playwright E2E scenarios (real store required to execute)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install locked Playwright test dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Discover full desktop and mobile browser test suite
+        run: npm run test:e2e:list
+
+  staging-e2e:
+    name: Full installed-store Playwright regression (opt-in staging only)
+    if: ${{ vars.CODECART_ENABLE_E2E == 'true' && vars.CODECART_E2E_BASE_URL != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    env:
+      E2E_BASE_URL: ${{ vars.CODECART_E2E_BASE_URL }}
+      E2E_ALLOW_REMOTE: '1'
+      E2E_ADMIN_USER: ${{ secrets.CODECART_E2E_ADMIN_USER }}
+      E2E_ADMIN_PASSWORD: ${{ secrets.CODECART_E2E_ADMIN_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install locked Playwright dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Install browser dependencies for four configured projects
+        run: npx playwright install --with-deps chromium firefox webkit
+      - name: Execute installed-store desktop and mobile E2E
+        run: npm run test:e2e
+      - name: Publish Playwright report and failure artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: CodeCart-3.7.0-staging-playwright-results
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: warn
+
+  php-compatibility:
+    name: PHP compatibility ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.2', '8.3', '8.4', '8.5']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          tools: composer:2.11.2
+      - name: Validate locked dependencies, platform and security
+        run: |
+          composer --version
+          composer validate --no-check-publish
+          composer install --no-dev --no-interaction --prefer-dist --no-scripts --optimize-autoloader
+          composer check-platform-reqs
+          composer audit --locked --no-interaction
+      - name: Verify key runtime interfaces
+        run: |
+          php -l upload/index.php
+          php -l upload/admin/index.php
+          php -l upload/install/index.php
+          php -l upload/system/startup.php
+          php tools/check_unishop2_compat.php
+          php tools/qa_unishop2_ocmod.php
+          php tools/qa_unishop2_369.php
+
+  composer-security-review:
+    name: Review Symfony 7.4 and Guzzle dependencies (read-only)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer:2.11.2
+      - name: Verify pinned Symfony 7.4 and Guzzle 8.5.2
+        run: |
+          composer validate --no-check-publish
+          composer install --no-dev --no-interaction --prefer-dist --no-scripts --optimize-autoloader
+          php -r '$p=json_decode(file_get_contents("composer.lock"),true); $v=[]; foreach($p["packages"] as $x){$v[$x["name"]]=$x["version"];} if(!preg_match("/^v?7\\.4\\./",$v["symfony/filesystem"]??"")) exit(1); if(($v["guzzlehttp/guzzle"]??"")!=="8.5.2") exit(2); echo "Pinned dependencies valid\\n";'
+          composer audit --locked --no-interaction
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CodeCart-Guzzle-security-review
+          path: |
+            composer.json
+            composer.lock
+          if-no-files-found: error

@@ -1,0 +1,99 @@
+name: Catalog Transfer and Backup QA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'upload/system/library/codecart/src/CatalogTransfer.php'
+      - 'upload/system/library/codecart/src/SimpleXlsx.php'
+      - 'upload/admin/model/tool/backup.php'
+      - 'upload/admin/controller/tool/backup.php'
+      - 'upload/admin/controller/tool/catalog_transfer.php'
+      - 'upload/admin/view/template/tool/backup.twig'
+      - 'tests/catalog_transfer_backup_smoke.php'
+      - 'tests/catalog_transfer_mariadb_integration.php'
+      - 'upload/system/library/codecart/src/SearchIndex.php'
+      - 'tests/smart_search_index_mariadb_integration.php'
+      - '.github/workflows/catalog-transfer-qa.yml'
+  pull_request:
+    paths:
+      - 'upload/system/library/codecart/src/CatalogTransfer.php'
+      - 'upload/system/library/codecart/src/SimpleXlsx.php'
+      - 'upload/admin/model/tool/backup.php'
+      - 'upload/admin/controller/tool/backup.php'
+      - 'upload/admin/controller/tool/catalog_transfer.php'
+      - 'upload/admin/view/template/tool/backup.twig'
+      - 'tests/catalog_transfer_backup_smoke.php'
+      - 'tests/catalog_transfer_mariadb_integration.php'
+      - 'upload/system/library/codecart/src/SearchIndex.php'
+      - 'tests/smart_search_index_mariadb_integration.php'
+      - '.github/workflows/catalog-transfer-qa.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  catalog-backup:
+    name: Catalog import/export & backup on PHP ${{ matrix.php }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.1', '8.2', '8.3', '8.4', '8.5']
+    steps:
+      - uses: actions/checkout@v7
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: zip, xml, simplexml, xmlreader, mbstring
+          coverage: none
+      - name: PHP syntax gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -l upload/system/library/codecart/src/CatalogTransfer.php
+          php -l upload/system/library/codecart/src/SimpleXlsx.php
+          php -l upload/admin/model/tool/backup.php
+          php -l upload/admin/controller/tool/backup.php
+          php -l upload/admin/controller/tool/catalog_transfer.php
+          php -l tests/catalog_transfer_backup_smoke.php
+      - name: Catalog transfer and database backup contract
+        run: php tests/catalog_transfer_backup_smoke.php
+
+  mariadb-roundtrip:
+    name: MariaDB catalog ZIP export/import round-trip
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      database:
+        image: mariadb:11.4
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: codecart_catalog_qa
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    env:
+      QA_DB_HOST: 127.0.0.1
+      QA_DB_USER: root
+      QA_DB_PASS: root
+    steps:
+      - uses: actions/checkout@v7
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: zip, simplexml, xml, xmlreader, mysqli, fileinfo, mbstring
+          coverage: none
+      - name: Syntax check
+        run: php -l tests/catalog_transfer_mariadb_integration.php
+      - name: Run isolated database round-trip
+        run: php tests/catalog_transfer_mariadb_integration.php
+      - name: Verify native search index against MariaDB
+        run: php tests/smart_search_index_mariadb_integration.php

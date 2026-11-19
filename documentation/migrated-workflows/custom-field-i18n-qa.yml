@@ -1,0 +1,40 @@
+name: CodeCart Custom Field Translation QA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'upload/admin/model/customer/custom_field.php'
+      - 'upload/admin/controller/customer/custom_field.php'
+      - 'upload/admin/view/template/customer/custom_field_form.twig'
+      - 'upload/admin/language/**/customer/custom_field.php'
+      - 'upload/catalog/model/account/custom_field.php'
+      - 'upload/system/library/codecart/migration.php'
+      - 'upload/admin/view/javascript/codecart-header-overflow.js'
+      - 'tests/custom_field_i18n_smoke.php'
+      - '.github/workflows/custom-field-i18n-qa.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  i18n:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.3','8.1','8.5']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+      - name: PHP syntax and translation regression
+        run: |
+          php -l upload/admin/controller/customer/custom_field.php
+          php -l upload/admin/model/customer/custom_field.php
+          php -l upload/catalog/model/account/custom_field.php
+          php -l tests/custom_field_i18n_smoke.php
+          php tests/custom_field_i18n_smoke.php

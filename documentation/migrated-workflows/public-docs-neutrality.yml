@@ -1,0 +1,54 @@
+name: Public documentation neutrality
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'README*'
+      - 'CHANGELOG.md'
+      - 'documentation/**'
+      - 'docs/**'
+      - '.github/workflows/public-docs-neutrality.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  neutral-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Block theme/plugin advertisements and store-specific examples
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git grep -nEi 'uni.?shop|langdir|ocfilter|barzus\.com\.ua|fermateh\.com\.ua|gontagro\.com\.ua|rayzer\.dk' -- README.md README.uk.md README_FIRST.txt CHANGELOG.md documentation docs ':(exclude)documentation/RELEASE_*.md'; then
+            echo "External theme/module or site-specific references must not appear in public documentation."
+            exit 1
+          fi
+          if git grep -nF 't.me/+tUZNEgY3aUk4MGIy' -- README* documentation docs upload/admin upload/catalog upload/system/library/codecart; then
+            echo "Deprecated Telegram invite link found"
+            exit 1
+          fi
+          grep -q 'https://t.me/codecartpro' upload/system/library/codecart/src/Community.php
+          grep -q 'https://github.com/CodeCartPro/CodeCartPro-3.0.6.0' upload/system/library/codecart/src/Community.php
+          grep -q 'Password: \*\*Demo\*\*' documentation/DEMO.md
+          grep -q 'Пароль: \*\*Demo\*\*' documentation/DEMO.uk.md
+          # Preserve the official public release destination, public demo and community.
+          grep -Fq 'https://github.com/CodeCartPro/CodeCartPro-3.0.6.0' README.md
+          grep -Fq 'https://github.com/CodeCartPro/CodeCartPro-3.0.6.0' README.uk.md
+          grep -Fq 'https://test.codecartpro.com/' documentation/DEMO.md
+          grep -Fq 'https://test.codecartpro.com/admin/' documentation/DEMO.md
+          grep -Fq 'https://test.codecartpro.com/' documentation/DEMO.uk.md
+          grep -Fq 'https://test.codecartpro.com/admin/' documentation/DEMO.uk.md
+          grep -Fq 'support@codecartpro.com' README.md
+          grep -Fq 'https://t.me/codecartpro' README.md
+          grep -Fq 'https://t.me/codecartpro' README.uk.md
+          grep -Fq "public const REPOSITORY = 'https://github.com/CodeCartPro/CodeCartPro-3.0.6.0'" upload/system/library/codecart/src/Community.php
+          grep -Fq "public const TELEGRAM = 'https://t.me/codecartpro'" upload/system/library/codecart/src/Community.php
+          if git grep -n -F 't.me/+tUZNEgY3aUk4MGIy' -- README* documentation docs upload/admin upload/catalog upload/system/library/codecart/src; then
+            echo 'Outdated Telegram invite remains in source or documentation'
+            exit 1
+          fi
+          echo "Public documentation is platform-neutral (CodeCart, OpenCart, ocStore)."
