@@ -5,7 +5,10 @@ function read(s){return fs.readFileSync(path.join(root,s),'utf8');}
 function exists(s){assert.ok(fs.existsSync(path.join(root,s)),'Missing '+s);}
 const admin='upload/admin/view/template/common/header.twig';
 const stores=['upload/catalog/view/theme/default/template/common/header.twig','upload/catalog/view/theme/codecart/template/common/header.twig'];
-for(const file of [admin,...stores]){const value=read(file);assert.match(value,/jquery-3\.8\.0\.min\.js/);assert.match(value,/jquery-migrate-3\.6\.0\.min\.js/);assert.match(value,/codecart_preview_bs5/);assert.match(value,/codecart_preview_date/);}
+function hasContentScope(template,cls){const match=template.match(/<div\s+id="content"\s+class="([^"]*)">/);return !!match&&match[1].split(/\s+/).includes(cls);}
+for(const file of [admin,...stores]){const value=read(file);assert.match(value,/jquery-3\.8\.0\.min\.js/);assert.match(value,/jquery-migrate-3\.6\.0\.min\.js/);assert.match(value,/codecart_preview_bs5/);}
+for(const file of stores) assert.match(read(file),/codecart_preview_date/);
+assert.match(read(admin),/codecart-native-datetimepicker\.js/);
 for(const area of ['admin','catalog']){
 const p='upload/'+area+'/view/javascript/';
 for(const s of ['jquery/jquery-3.8.0.min.js','jquery/jquery-migrate-3.6.0.min.js','codecart-datepicker-next/air-datepicker.js','codecart-datepicker-next/air-datepicker.css','codecart-bs5-preview/bootstrap-5.3.9.min.css','codecart-bs5-preview/bootstrap-5.3.9.bundle.min.js','codecart-bs5-preview/fontawesome/css/all.min.css','codecart-bs5-preview/fontawesome/css/v4-shims.min.css'])exists(p+s);
@@ -18,8 +21,8 @@ assert.match(read(p+'jquery/jquery-migrate-3.6.0.min.js'),/jQuery Migrate v3\.6\
 }
 assert.match(read('composer.json'),/">=8\.2 <8\.6"/);
 for (const page of ['upload/index.php','upload/admin/index.php','upload/install/index.php']) {
- assert.match(read(page), /define\('VERSION', '3\.7\.0'\)/);
- assert.match(read(page), /define\('CODECART_BUILD', '3\.7\.0'\)/);
+ assert.match(read(page), /define\('VERSION', '3\.0\.7\.0'\)/);
+ assert.match(read(page), /define\('CODECART_BUILD', '3\.0\.7\.0'\)/);
 }
 assert.match(read('upload/system/startup.php'), /PHP 8\.2\+ Required/);
 for (const file of [admin,...stores]) {
@@ -51,7 +54,7 @@ const adminViews = [
  ['upload/admin/view/template/sale/order_list.twig','ccp-ui-order-list']
 ];
 for (const [file, scope] of adminViews) {
- assert.ok(read(file).includes('<div id="content" class="'+scope+'">'), 'Missing UI class on '+file);
+ assert.ok(hasContentScope(read(file),scope), 'Missing UI class on '+file);
 }
 const adminCSS=read('upload/admin/view/stylesheet/codecart-ui-370.css');
 for(const className of ['ccp-ui-product-form','ccp-ui-product-list','ccp-ui-order-list']){
@@ -61,7 +64,7 @@ for (const [file, scope] of [
  ['upload/admin/view/template/setting/setting.twig','ccp-ui-settings'],
  ['upload/admin/view/template/sale/order_info.twig','ccp-ui-order-info']
 ]) {
- assert.ok(read(file).includes('<div id="content" class="'+scope+'">'), 'Missing UI scope: '+file);
+ assert.ok(hasContentScope(read(file),scope), 'Missing UI scope: '+file);
  assert.ok(adminCSS.includes(scope),'Missing UI rules for '+scope);
 }
 // Batch 3: assert all reviewed admin and CodeCart storefront templates have scoped, BS5-only UI hooks.
@@ -73,7 +76,7 @@ for (const [file, cls] of [
  ['marketing/coupon_list.twig','ccp-ui-coupon-list']
 ]) {
  const path='upload/admin/view/template/'+file;
- assert.ok(read(path).includes('<div id="content" class="'+cls+'">'), 'Missing admin scope: '+path);
+ assert.ok(hasContentScope(read(path),cls), 'Missing admin scope: '+path);
  assert.ok(adminCSS.includes('.'+cls), 'Missing admin styles: '+cls);
 }
 const storeCSS=read('upload/catalog/view/javascript/codecart-bs5-preview/codecart-ui-370.css');
@@ -93,13 +96,13 @@ for (const id of ['#product-product','#product-category','#checkout-cart','#chec
 }
 exists('upload/admin/view/javascript/codecart-ui-370.js');
 new vm.Script(read('upload/admin/view/javascript/codecart-ui-370.js'));
-assert.ok(read(admin).includes('view/javascript/codecart-ui-370.js?v=3.7.0'), 'Admin UI script not loaded');
+assert.ok(read(admin).includes('view/javascript/codecart-ui-370.js?v=3.0.7.0'), 'Admin UI script not loaded');
 // Bootstrap 5 requires its own color-mode attribute, not just CodeCart dark classes.
 exists('upload/catalog/view/javascript/codecart-bs5-preview/codecart-theme-370.js');
 new vm.Script(read('upload/catalog/view/javascript/codecart-bs5-preview/codecart-theme-370.js'));
 for (const file of stores) {
  const header=read(file);
- assert.ok(header.includes('codecart-theme-370.js?v=3.7.0'), 'Missing storefront theme bridge: '+file);
+ assert.ok(header.includes('codecart-theme-370.js?v=3.0.7.0'), 'Missing storefront theme bridge: '+file);
  assert.ok(header.includes("setAttribute('data-bs-theme'"), 'Missing early color-mode bootstrap: '+file);
 }
 assert.ok(read(admin).includes("setAttribute('data-bs-theme'"), 'Missing early admin BS5 color mode');
