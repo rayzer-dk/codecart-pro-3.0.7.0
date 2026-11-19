@@ -379,8 +379,8 @@ html.ccp-bs5-preview #header .dropdown-menu :is(a,button):focus-visible {
   background: var(--bs-dropdown-link-hover-bg, #e9f1fb);
 }
 html.ccp-bs5-preview .ccp-explicit-caret.dropdown-toggle::after {
-  display: none !important;
-  content: none !important;
+  display: none;
+  content: none;
 }
 html.ccp-bs5-preview #header :is(.btn,.dropdown-toggle):focus-visible {
   outline: 2px solid var(--ccp-ui-focus, #1769aa);
