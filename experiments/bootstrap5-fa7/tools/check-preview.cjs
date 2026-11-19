@@ -38,9 +38,9 @@ const uiFiles=[
 for(const file of uiFiles) {
  exists(file);
  const css=read(file);
- assert.match(css,/html\\.ccp-bs5-preview/);
+ assert.match(css,/html\.ccp-bs5-preview/);
  assert.match(css,/--ccp-ui-radius/);
- assert.match(css,/@media \\(max-width: 767\\.98px\\)/);
+ assert.match(css,/@media \(max-width: 767\.98px\)/);
  assert.ok(!/!important/g.test(css), 'UI foundation must not force overrides: '+file);
 }
 for(const file of [admin,...stores]){
