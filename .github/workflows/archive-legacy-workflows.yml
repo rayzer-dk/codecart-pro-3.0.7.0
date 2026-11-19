@@ -1,0 +1,53 @@
+name: Archive original CodeCart GitHub workflows
+on:
+  push:
+    paths:
+      - .github/workflows/archive-legacy-workflows.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  archive:
+    if: github.repository == 'rayzer-dk/codecart-pro-3.0.7.0' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Read legacy workflow definitions without activating release jobs
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "CodeCart PRO migration"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add legacy https://github.com/rayzer-dk/CodeCart-3-0-6.git
+          git fetch --no-tags legacy \
+            refs/heads/main:refs/remotes/legacy/main \
+            refs/heads/feature/codecart-3.7.0-modernization:refs/remotes/legacy/modern
+          mkdir -p "${RUNNER_TEMP}/original-workflows" documentation/migrated-workflows
+          git archive legacy/main .github/workflows | tar -xf - -C "${RUNNER_TEMP}/original-workflows"
+          cp -a "${RUNNER_TEMP}/original-workflows/.github/workflows/." documentation/migrated-workflows/
+          git show legacy/modern:.github/workflows/modernization-pilot-qa.yml \
+            > documentation/migrated-workflows/modernization-pilot-qa.yml
+          printf '%s\n' \
+            '# Imported workflow definitions' \
+            '' \
+            'Original CI workflows from the previous CodeCart repository.' \
+            'Stored here without activation to prevent old release/deploy jobs' \
+            'from running before CodeCart PRO 3.0.7.0 integration testing.' \
+            '' \
+            'Only explicitly reviewed workflows belong in .github/workflows.' \
+            > documentation/migrated-workflows/README.md
+      - name: Save original workflows in new repository
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add documentation/migrated-workflows
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(migration): archive all legacy GitHub workflow definitions"
+            git push origin HEAD:main
+          fi
