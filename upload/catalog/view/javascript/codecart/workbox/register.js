@@ -80,10 +80,22 @@
         return installButton;
       }
 
+      function showInstallWhenReady() {
+        if (createInstallButton()) {
+          installButton.hidden = false;
+        } else if (document.readyState === 'loading') {
+          // Chrome may dispatch beforeinstallprompt before the footer exists.
+          // Retain the event and expose the button as soon as the footer is parsed.
+          document.addEventListener('DOMContentLoaded', function () {
+            if (availablePrompt && createInstallButton()) installButton.hidden = false;
+          }, { once: true });
+        }
+      }
+
       window.addEventListener('beforeinstallprompt', function (event) {
         event.preventDefault();
         availablePrompt = event;
-        if (createInstallButton()) installButton.hidden = false;
+        showInstallWhenReady();
       });
 
       window.addEventListener('appinstalled', function () {
