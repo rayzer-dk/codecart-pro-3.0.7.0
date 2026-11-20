@@ -2,6 +2,7 @@
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
 import re
 import subprocess
@@ -62,7 +63,13 @@ def build(root, output):
     if not version:
         raise ValueError('Invalid package build')
     output.mkdir(parents=True, exist_ok=True)
-    archive = output / ('CodeCart_PRO_' + version[1] + '_Full_Installable.zip')
+    release_build = os.environ.get('CODECART_RELEASE_BUILD', '').strip()
+    if release_build and not re.fullmatch(r'0\\.0\\.[1-9][0-9]*', release_build):
+        raise ValueError('Invalid release build (expected 0.0.1, 0.0.2, ...)')
+    archive_stem = 'CodeCart_PRO_' + version[1]
+    if release_build:
+        archive_stem += '_Build_' + release_build
+    archive = output / (archive_stem + '_Full_Installable.zip')
     if archive.exists():
         raise ValueError('Refusing to overwrite an existing release: ' + str(archive))
     manifest = json.loads((root / 'upload/system/config/codecart_integrity.json').read_text(encoding='utf-8'))
@@ -113,6 +120,7 @@ def build(root, output):
         'archive': archive.name,
         'archive_sha256': digest,
         'package_build': version[1],
+        'release_build': release_build,
         'source_commit': source_commit,
         'compression': {'method': 'deflate', 'level': 9, 'python': sys.version.split()[0], 'zlib': zlib.ZLIB_RUNTIME_VERSION},
         'files': entries,
