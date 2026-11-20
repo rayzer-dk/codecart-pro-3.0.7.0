@@ -133,7 +133,6 @@ class ControllerExtensionCaptchaBasic extends Controller {
         $ageMs = (int)round((microtime(true) - (float)$challenge['created_at']) * 1000);
         $minimum = $this->minAgeMs();
         if ($ageMs < $minimum) {
-            $json['fallback'] = false;
             $json['message'] = $this->language->get('error_too_fast');
             return $this->json($json, 429);
         }
