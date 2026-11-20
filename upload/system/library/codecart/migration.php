@@ -37,7 +37,9 @@ class Migration {
             $lock_acquired = !empty($lock_query->row['acquired']);
 
             if (!$lock_acquired) {
-                throw new \RuntimeException('Another CodeCart core migration is active; advisory lock unavailable.');
+                // Another request owns the migration lock. Do not mutate state or
+                // report a failure: the winner will complete the migration.
+                return;
             }
 
             // Filesystem/vendor activation is part of the same serialized upgrade
