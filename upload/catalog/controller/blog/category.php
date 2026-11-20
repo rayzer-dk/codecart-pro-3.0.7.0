@@ -253,12 +253,6 @@ class ControllerBlogCategory extends Controller {
 					$image = $this->model_tool_image->resize('no_image.webp', $this->config->get('configblog_image_article_width'), $this->config->get('configblog_image_article_height'));
 				}
 
-				if ($this->config->get('configblog_review_status')) {
-					$rating = (int)$result['rating'];
-				} else {
-					$rating = false;
-				}
-
 				$data['articles'][] = array(
 					'article_id'  => $result['article_id'],
 					'thumb'       => $image,
