@@ -1364,7 +1364,6 @@ $file = DIR_UPLOAD . $this->request->post['path'] . '/install.xml';
 				$id = (string)$candidate['modification_id'];
 				$item = isset($compatibility_map[$id]) && is_array($compatibility_map[$id]) ? $compatibility_map[$id] : array();
 				$state = !empty($candidate['status']) && isset($item['state']) ? (string)$item['state'] : (!empty($candidate['status']) ? 'unchecked' : 'disabled');
-				$match = false;
 				if ($compatibility_filter === 'active') { $match = !empty($candidate['status']); }
 				elseif ($compatibility_filter === 'issues') { $match = !empty($candidate['status']) && ($state === 'warning' || $state === 'error'); }
 				else { $match = !empty($candidate['status']) && $state === $compatibility_filter; }
