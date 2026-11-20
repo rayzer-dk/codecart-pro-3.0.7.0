@@ -99,20 +99,6 @@ class ControllerBlogLatest extends Controller {
 			}
 		}
 
-		$url = '';
-
-		if (isset($this->request->get['sort'])) {
-			$url .= '&sort=' . $this->request->get['sort'];
-		}	
-
-		if (isset($this->request->get['order'])) {
-			$url .= '&order=' . $this->request->get['order'];
-		}
-
-		if (isset($this->request->get['page'])) {
-			$url .= '&page=' . $this->request->get['page'];
-		}	
-
 		$data['text_refine'] = $this->language->get('text_refine');
 		$data['text_views'] = $this->language->get('text_views');
 		$data['text_empty'] = $this->language->get('text_empty');			
