@@ -7,12 +7,7 @@ class ModelBlogArticle extends Model {
 		$this->db->query("UPDATE " . DB_PREFIX . "article SET viewed = (viewed + 1) WHERE article_id = '" . (int)$article_id . "'");
 	}
 	
-	public function getArticle($article_id) {
-		if ($this->customer->isLogged()) {
-			$customer_group_id = $this->customer->getGroupId();
-		} else {
-			$customer_group_id = $this->config->get('config_customer_group_id');
-		}	
+public function getArticle($article_id) {	
 				
 		$articles = $this->getArticlesByIds(array((int)$article_id));
 
