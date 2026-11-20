@@ -42,7 +42,6 @@ class ControllerExtensionModuleBlogLatest extends Controller {
 		$data['blog_show_views'] = $this->config->get('configblog_show_views') === null || (bool)$this->config->get('configblog_show_views');
 		$data['articles'] = array();
 
-		$limit = max(1, min(30, (int)($setting['limit'] ?? 4)));
 		$results = $this->model_blog_article->getLatestArticleCards($limit);
 
 		if ($results) {
