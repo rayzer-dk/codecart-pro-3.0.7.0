@@ -728,7 +728,7 @@ class ControllerToolCodeCartCore extends Controller {
             'contact / reviews / registration / forgotten / returns / GDPR'=>'cmp_spam_scope','form-specific'=>'cmp_form_specific','Core Dashboard'=>'cmp_core_dashboard',
             'Dashboard does not use them; Flot 4.2.6 / jQVMap 1.5.1 bundled; legacy fallback'=>'cmp_legacy_assets','CodeCart PRO Slider; Swiper 3 legacy compatibility'=>'cmp_slider','3.7.1 Legacy Core'=>'cmp_jquery_legacy','3.4.1 Legacy Core'=>'cmp_bootstrap_legacy',
             '2.1.0 manual / CLI only'=>'cmp_scss_cli','2.1.0 runtime'=>'cmp_scss_runtime_oc','2.0.1 runtime'=>'cmp_scss_runtime_ocs','SeoPro + language prefixes + canonical/faceted policy'=>'cmp_seo',
-            'JPEG/PNG/WebP/AVIF + safe fallback'=>'cmp_images','File / APCu / Memcached / Redis + fallback'=>'cmp_cache','File'=>'cmp_file','7.3.1 + AUTO/Core/Full + FA4 compatibility'=>'cmp_fa','Summernote 0.9.1 local'=>'cmp_summernote'
+            'JPEG/PNG/WebP/AVIF + safe fallback'=>'cmp_images','File / APCu / Memcached / Redis + fallback'=>'cmp_cache','File'=>'cmp_file','Summernote 0.9.1 local'=>'cmp_summernote'
         );
         foreach ($rows as &$row) {
             foreach (array('component','opencart','ocstore','codecart') as $field) {
