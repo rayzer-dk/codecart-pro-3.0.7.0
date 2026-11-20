@@ -47,6 +47,22 @@ test.describe('Storefront geometry and interactions', () => {
     await page.screenshot({ path: testInfo.outputPath('home-layout.png'), fullPage: false });
   });
 
+
+  test('mobile catalog closes without a duplicate Bootstrap drawer', async ({ page }) => {
+    test.skip(page.viewportSize().width >= 992, 'mobile/tablet catalog only');
+    await page.goto('/');
+    const toggle = page.locator('.ccp-mobile-catalog-button').first();
+    const drawer = page.locator('#ccp-mobile-catalog-body').first();
+    await expect(toggle).toBeVisible();
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    await expect(drawer).toBeVisible();
+    await page.locator('.ccp-mobile-drawer-close').click();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(drawer).toBeHidden();
+    await expect(drawer).not.toHaveClass(/(?:^|\\s)(?:in|show|collapsing)(?:\\s|$)/);
+  });
+
   test('category, subcategories and product cards fill grid tracks', async ({ page }, testInfo) => {
     await page.goto(categoryPath);
     await expect(page.locator('#product-category #content')).toBeVisible();
