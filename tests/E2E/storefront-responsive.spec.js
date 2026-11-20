@@ -117,7 +117,7 @@ test.describe('Storefront geometry and interactions', () => {
     // Use the seeded in-stock QA product: category tiles may link to a
     // demo category instead of a published product in a clean install.
     const productId = process.env.E2E_PRODUCT_ID;
-    expect(productId, 'E2E_PRODUCT_ID is required for product layout QA').toMatch(/^\\d+$/);
+    expect(productId, 'E2E_PRODUCT_ID is required for product layout QA').toMatch(/^\d+$/);
     const response = await page.goto('/index.php?route=product/product&product_id=' + productId);
     expect(response && response.ok()).toBe(true);
     await expect(page.locator('#product-product h1')).toBeVisible();
