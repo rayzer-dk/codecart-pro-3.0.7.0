@@ -5,7 +5,6 @@
 class ControllerProductProduct extends Controller {
 	public function index() {
 		$this->load->language('product/product');
-		$data['text_tax'] = \CodeCart\Core\TaxDisplay::label($this->config, $this->language);
 
 		$data['breadcrumbs'] = array();
 
