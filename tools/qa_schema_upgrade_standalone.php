@@ -141,7 +141,16 @@ $publicationRegistry = new Registry();
 $publicationRegistry->set('db', $publicationDb);
 $publicationRegistry->set('config', $publicationConfig);
 $publicationRegistry->set('log', null);
-(new \CodeCart\Migration($publicationRegistry))->run();
+$publicationFailure = null;
+try {
+    (new \CodeCart\Migration($publicationRegistry))->run();
+} catch (\RuntimeException $error) {
+    $publicationFailure = $error;
+}
+schemaCheck($publicationFailure instanceof \RuntimeException
+    && $publicationFailure->getPrevious() instanceof \RuntimeException
+    && $publicationFailure->getPrevious()->getMessage() === 'Injected late journal failure.',
+    'Late journal failure must propagate with its original cause.');
 schemaCheck($publicationDb->journalAttempts === 1, 'Injected failure must reach the late migration journal.');
 schemaCheck($publicationDb->markers['codecart_presentation_schema_version'] === $previousRevision, 'A later failure must preserve the pending stored revision.');
 schemaCheck($publicationConfig->get('codecart_presentation_schema_version') === $previousRevision, 'A later failure must preserve the pending in-memory revision.');
