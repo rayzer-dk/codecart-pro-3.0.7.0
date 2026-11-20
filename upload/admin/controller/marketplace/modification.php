@@ -725,7 +725,6 @@ $file = DIR_UPLOAD . $this->request->post['path'] . '/install.xml';
             // working tree remains active while compatibility is analysed. Immediately before
             // publishing, remove the build marker first; if filesystem writing then fails,
             // startup falls back to original Core files instead of loading a half-built tree.
-            $build_marker_ok = false;
             $publish_error = '';
 
             try {
@@ -1474,9 +1473,6 @@ $file = DIR_UPLOAD . $this->request->post['path'] . '/install.xml';
 
 		foreach ($results as $result) {
 			$compatibility_item = isset($compatibility_map[(string)$result['modification_id']]) && is_array($compatibility_map[(string)$result['modification_id']]) ? $compatibility_map[(string)$result['modification_id']] : array();
-			$compatibility_label = '';
-			$compatibility_class = '';
-			$compatibility_title = '';
 			$compatibility_state_name = 'unchecked';
 			if (!$result['status']) {
 				$compatibility_label = $this->language->get('text_not_active');
