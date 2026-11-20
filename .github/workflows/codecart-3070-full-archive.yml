@@ -96,3 +96,83 @@ jobs:
           retention-days: 90
           if-no-files-found: error
           compression-level: 0
+
+  publish:
+    name: Publish verified v3.0.7.0 tag and GitHub Release
+    needs: package
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - name: Verify all required QA workflows on the exact release commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha="$GITHUB_SHA"
+          workflows=(modernization-pilot-qa.yml source-quality-deep.yml playwright-e2e.yml)
+          if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/v3.0.7.0" >/dev/null 2>&1; then
+            echo 'Release tag already exists. Refusing to move it.'
+            exit 1
+          fi
+          for workflow in "${workflows[@]}"; do
+            runs="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/$workflow/runs?head_sha=$sha&per_page=30")"
+            if ! jq -e --arg sha "$sha" '.workflow_runs | any(.head_sha==$sha)' <<< "$runs" >/dev/null; then
+              gh workflow run "$workflow" --ref main
+            fi
+          done
+          for attempt in {1..90}; do
+            ok=1
+            for workflow in "${workflows[@]}"; do
+              data="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/$workflow/runs?head_sha=$sha&per_page=30")"
+              result="$(jq -r --arg sha "$sha" '[.workflow_runs[] | select(.head_sha==$sha)] | sort_by(.created_at) | last | .conclusion // "pending"' <<< "$data")"
+              echo "$workflow: $result"
+              case "$result" in
+                success) ;;
+                failure|cancelled|timed_out|action_required|startup_failure|stale)
+                  echo "Required QA failed: $workflow ($result)"
+                  exit 1 ;;
+                *) ok=0 ;;
+              esac
+            done
+            if [ "$ok" = 1 ]; then exit 0; fi
+            sleep 20
+          done
+          echo 'Required QA did not complete successfully before the release deadline.'
+          exit 1
+      - name: Retrieve the exact verified installation artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: CodeCart_PRO_3.0.7.0_Full_Installable
+          path: release-artifacts
+      - name: Recheck ZIP and source SHA before publishing
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib,json,pathlib,zipfile,os
+          root=pathlib.Path('release-artifacts')
+          package=root/'CodeCart_PRO_3.0.7.0_Full_Installable.zip'
+          manifest=pathlib.Path(str(package)+'.manifest.json')
+          assert package.is_file() and manifest.is_file(), 'Missing release artifact or manifest'
+          doc=json.loads(manifest.read_text())
+          assert doc['source_commit']==os.environ['GITHUB_SHA'], 'Artifact source commit differs from release commit'
+          assert doc['archive_sha256']==hashlib.sha256(package.read_bytes()).hexdigest(), 'ZIP checksum mismatch'
+          with zipfile.ZipFile(package) as z:
+              assert z.testzip() is None, 'ZIP integrity failure'
+          print('Verified release archive and source commit',doc['source_commit'])
+          PY
+      - name: Create immutable version tag and publish release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release create v3.0.7.0 release-artifacts/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "CodeCart PRO 3.0.7.0" \
+            --notes "Verified complete installable distribution with Composer vendor. Published only after archive integrity, modernization QA, first-party code quality and cross-browser Playwright checks pass on the exact same main commit."
