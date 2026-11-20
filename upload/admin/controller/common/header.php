@@ -220,7 +220,6 @@ class ControllerCommonHeader extends Controller {
             }
         }
 
-        $data['search'] = '';
         if ($data['logged']) {
             try {
                 $data['search'] = $this->load->controller('search/search');
