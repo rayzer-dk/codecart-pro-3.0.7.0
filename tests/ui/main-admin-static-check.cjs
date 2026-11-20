@@ -18,7 +18,8 @@ assert.match(stylesheet,/#content\[class\*="ccp-main-ui-"\]/);
 assert.match(stylesheet,/@media \(max-width: 767px\)/);
 for (const [filename, scope] of views) {
  const source=read('upload/admin/view/template/'+filename);
- assert.ok(source.includes('<div id="content" class="'+scope+'">'),'Missing scoped content wrapper for '+filename);
+ const contentMatch=source.match(/<div\\s+id="content"\\s+class="([^"]*)">/);
+ assert.ok(contentMatch && contentMatch[1].split(/\\s+/).includes(scope),'Missing scoped content wrapper for '+filename);
  assert.ok(stylesheet.includes('.'+scope),'Missing responsive CSS for '+scope);
 }
 const header=read('upload/admin/view/template/common/header.twig');
