@@ -831,11 +831,6 @@ $file = DIR_UPLOAD . $this->request->post['path'] . '/install.xml';
 				$url .= '&order=' . $this->request->get['order'];
 			}
 
-			if (isset($this->request->get['page'])) {
-				$url .= '&page=' . $this->request->get['page'];
-			}
-
-			//$this->response->redirect($this->url->link(!empty($data['redirect']) ? $data['redirect'] : 'marketplace/modification', 'user_token=' . $this->session->data['user_token'] . $url, true));
 		}
 
 		if ($is_ajax) {
