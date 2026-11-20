@@ -721,7 +721,7 @@ class ControllerToolCodeCartCore extends Controller {
             '6 editors / 5.65.21 legacy'=>'cmp_codemirror_modes',
             '2.31.0 legacy fallback'=>'cmp_moment_modes',
             'Hybrid DateTimePicker 1.8.7 / Air Datepicker 3.6.0 + Day.js 1.11.23 opt-in'=>'cmp_datepicker_modes',
-            '7.3.1 + AUTO/Core/Full + FA4 compatibility'=>'cmp_fa_73',
+            '7.3.1 + AUTO/Core/Full + FA4 compatibility'=>'cmp_fa',
             'Content editor'=>'cmp_content_editor','Image formats'=>'cmp_image_formats','Cache backends'=>'cmp_cache_backends','Scheduler / Queue'=>'cmp_scheduler_queue',
             'System Notifications'=>'cmp_system_notifications','Central Spam Service'=>'cmp_spam_service','Built-in'=>'cmp_builtin','Built-in, opt-in on UPDATE'=>'cmp_builtin_optin',
             'TOTP + trusted device layer'=>'cmp_totp','Read-only diagnostics + migrations'=>'cmp_schema','PSR-4 / Services / Manifest / Extension Points'=>'cmp_modern',
