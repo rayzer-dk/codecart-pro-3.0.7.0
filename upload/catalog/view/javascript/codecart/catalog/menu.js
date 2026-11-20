@@ -31,6 +31,7 @@
       branch.classList.remove('collapsing');
       branch.classList.add('collapse');
       branch.classList.toggle('in', !!open);
+      branch.classList.remove('show');
       branch.style.height = '';
       branch.setAttribute('aria-hidden', open ? 'false' : 'true');
       var item = branch.parentNode;
@@ -54,6 +55,7 @@
       body.classList.remove('collapsing');
       body.classList.add('collapse');
       body.classList.toggle('in', !!open);
+      body.classList.remove('show');
       body.style.height = '';
       if (openButton) {
         openButton.classList.toggle('collapsed', !open);
