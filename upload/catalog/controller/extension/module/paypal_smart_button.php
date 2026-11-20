@@ -598,13 +598,6 @@ class ControllerExtensionModulePayPalSmartButton extends Controller {
 			'href' => $this->url->link('extension/module/paypal_smart_button/confirmOrder', '', true)
 		);
 
-		$points_total = 0;
-
-		foreach ($this->cart->getProducts() as $product) {
-			if ($product['points']) {
-				$points_total += $product['points'];
-			}
-		}
 
 		if (isset($this->request->post['next'])) {
 			$data['next'] = $this->request->post['next'];
@@ -615,6 +608,7 @@ class ControllerExtensionModulePayPalSmartButton extends Controller {
 		$this->load->model('tool/upload');
 
 		$products = $this->cart->getProducts();
+		$minimum_warning = '';
 
 		if (empty($products)) {
 			$this->response->redirect($this->url->link('checkout/cart', '', true));
@@ -630,7 +624,7 @@ class ControllerExtensionModulePayPalSmartButton extends Controller {
 			}
 
 			if ($product['minimum'] > $product_total) {
-				$data['error_warning'] = sprintf($this->language->get('error_minimum'), $product['name'], $product['minimum']);
+				$minimum_warning = sprintf($this->language->get('error_minimum'), $product['name'], $product['minimum']);
 			}
 
 			if ($product['image']) {
@@ -897,6 +891,10 @@ class ControllerExtensionModulePayPalSmartButton extends Controller {
 			unset($this->session->data['error_warning']);
 		} else {
 			$data['error_warning'] = '';
+		}
+
+		if ($minimum_warning !== '') {
+			$data['error_warning'] = trim((string)$data['error_warning'] . "\n" . $minimum_warning);
 		}
 
 		if (isset($this->session->data['success'])) {
@@ -1378,7 +1376,7 @@ class ControllerExtensionModulePayPalSmartButton extends Controller {
 				'value' => $amount_info
 			);
 
-			$result = $paypal->updateOrder($order_id, $order_info);
+			$paypal->updateOrder($order_id, $order_info);
 			
 			$seller_protection_status = 'NOT_ELIGIBLE';
 			if ($transaction_method == 'authorize') {
