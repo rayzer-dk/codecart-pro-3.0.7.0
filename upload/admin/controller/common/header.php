@@ -224,6 +224,7 @@ class ControllerCommonHeader extends Controller {
             try {
                 $data['search'] = $this->load->controller('search/search');
             } catch (\Throwable $e) {
+                $data['search'] = '';
                 $this->logHeaderFailure('search', $e);
             }
         }
