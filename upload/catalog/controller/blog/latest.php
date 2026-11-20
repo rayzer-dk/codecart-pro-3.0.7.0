@@ -113,10 +113,6 @@ class ControllerBlogLatest extends Controller {
 			$url .= '&page=' . $this->request->get['page'];
 		}	
 
-		if (isset($this->request->get['limit'])) {
-			$url .= '&limit=' . $this->request->get['limit'];
-		}
-
 		$data['text_refine'] = $this->language->get('text_refine');
 		$data['text_views'] = $this->language->get('text_views');
 		$data['text_empty'] = $this->language->get('text_empty');			
