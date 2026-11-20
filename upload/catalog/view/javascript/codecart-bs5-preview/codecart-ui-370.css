@@ -612,3 +612,151 @@ html.ccp-bs5-preview #content .row.ccp-product-grid > .product-grid .button-grou
     grid-template-columns: minmax(0,1fr) 36px 36px;
   }
 }
+
+/* CodeCart PRO 3.0.7.0: category/product layout pass 3 (2026-11-20).
+   Bootstrap's column width utilities must not shrink explicit CSS grid cells. */
+html.ccp-bs5-preview #product-category .row.ccp-subcategory-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill,minmax(155px,1fr)) !important;
+  gap: 12px !important;
+  width: 100%;
+  margin: 12px 0 18px !important;
+  padding: 0 !important;
+  align-items: stretch;
+}
+html.ccp-bs5-preview #product-category .row.ccp-subcategory-grid > [class*="col-"] {
+  display: block !important;
+  float: none !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  flex: none !important;
+}
+html.ccp-bs5-preview #product-category .row.ccp-subcategory-grid .ccp-subcategory-card {
+  width: 100% !important;
+  height: 100%;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 12px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+html.ccp-bs5-preview #product-category .row.ccp-subcategory-grid .ccp-subcategory-card img {
+  display: block;
+  width: auto !important;
+  height: auto !important;
+  max-width: 100%;
+  max-height: 82px;
+  object-fit: contain;
+}
+html.ccp-bs5-preview #product-category #content .ccp-category-intro {
+  min-width: 0;
+  max-width: 100%;
+}
+html.ccp-bs5-preview #product-category #content .ccp-category-intro__description {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+html.ccp-bs5-preview #product-category #content .ccp-toolbar {
+  align-items: center;
+  row-gap: 8px;
+}
+html.ccp-bs5-preview #product-category #content .ccp-toolbar .form-group {
+  margin-bottom: 0;
+}
+html.ccp-bs5-preview #product-product .row.ccp-product-main {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  align-items: start !important;
+  column-gap: 24px;
+  row-gap: 18px;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  width: 100%;
+}
+html.ccp-bs5-preview #product-product .row.ccp-product-main > .ccp-product-media,
+html.ccp-bs5-preview #product-product .row.ccp-product-main > .ccp-product-summary {
+  display: block;
+  float: none !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  flex: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+html.ccp-bs5-preview #product-product .ccp-product-summary-card {
+  height: auto !important;
+  min-height: 0 !important;
+  margin-bottom: 18px !important;
+}
+html.ccp-bs5-preview #product-product .ccp-product-gallery-main > .thumbnail {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  min-height: 0 !important;
+  max-height: 530px;
+  padding: 18px;
+  margin: 0;
+  overflow: hidden;
+}
+html.ccp-bs5-preview #product-product .ccp-product-gallery-main > .thumbnail > img {
+  display: block !important;
+  width: auto !important;
+  height: auto !important;
+  max-width: 100% !important;
+  max-height: 490px !important;
+  object-fit: contain !important;
+}
+html.ccp-bs5-preview #product-product .ccp-product-gallery-main {
+  margin-bottom: 12px;
+}
+html.ccp-bs5-preview #product-product .ccp-product-gallery-strip {
+  max-width: 100%;
+}
+html.ccp-bs5-preview #product-product .ccp-product-buy-row {
+  min-width: 0;
+}
+@media (min-width:768px) and (max-width:1199.98px) {
+  html.ccp-bs5-preview #product-product .row.ccp-product-main {
+    grid-template-columns: minmax(0,1fr) minmax(0,1fr) !important;
+    gap: 16px;
+  }
+  html.ccp-bs5-preview #product-category .row.ccp-subcategory-grid {
+    grid-template-columns: repeat(auto-fill,minmax(135px,1fr)) !important;
+  }
+}
+@media (max-width:767.98px) {
+  html.ccp-bs5-preview #product-product .row.ccp-product-main {
+    grid-template-columns: minmax(0,1fr) !important;
+    gap: 14px;
+  }
+  html.ccp-bs5-preview #product-product .ccp-product-gallery-main > .thumbnail {
+    max-height: 400px;
+    aspect-ratio: 4 / 3;
+    padding: 10px;
+  }
+  html.ccp-bs5-preview #product-product .ccp-product-gallery-main > .thumbnail > img {
+    max-height: 370px !important;
+  }
+  html.ccp-bs5-preview #product-product .ccp-product-summary-card {
+    padding: 15px !important;
+  }
+  html.ccp-bs5-preview #product-category .row.ccp-subcategory-grid {
+    grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+    gap: 10px !important;
+  }
+  html.ccp-bs5-preview #product-category .row.ccp-subcategory-grid .ccp-subcategory-card {
+    min-height: 116px;
+    padding: 9px 6px;
+  }
+  html.ccp-bs5-preview #product-category .row.ccp-subcategory-grid .ccp-subcategory-card img {
+    max-height: 64px;
+  }
+}
