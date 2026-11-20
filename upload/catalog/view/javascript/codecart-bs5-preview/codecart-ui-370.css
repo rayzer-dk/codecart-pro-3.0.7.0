@@ -861,3 +861,15 @@ html.ccp-bs5-preview #product-product .ccp-product-summary .ccp-product-secondar
  html.ccp-bs5-preview .ccp-mobile-catalog-body.collapse:not(.in):not(.show) {display:none!important;visibility:hidden;pointer-events:none}
  html.ccp-bs5-preview .ccp-mobile-catalog-body.collapse.in {display:block!important;visibility:visible;pointer-events:auto}
 }
+
+@media (min-width:1200px) {
+  /* Native category wall uses module-level column variables, not the
+     category-page subcategory grid. Keep five across both grid and carousel. */
+  html.ccp-bs5-preview .ccp-native-module--categories {
+    --ccp-module-cols-desktop:5!important;
+    --ccp-module-cols-current:5!important;
+  }
+  html.ccp-bs5-preview .ccp-native-module--categories.ccp-native-module--grid .ccp-native-module-track {
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
+  }
+}
