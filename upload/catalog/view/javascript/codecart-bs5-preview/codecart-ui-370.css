@@ -383,3 +383,232 @@ html.ccp-bs5-preview .ccp-head #cart .dropdown-menu {
     display: none;
   }
 }
+
+/* CodeCart PRO 3.0.7.0 | Bootstrap 5 responsive storefront repair 2026-11-20 */
+/* The BS3 compatibility shim constrains .container to 1170px. Restore the requested
+   storefront width only in the BS5 preview; leave legacy BS3 installations alone. */
+@media (min-width: 1200px) {
+  html.ccp-bs5-preview .container {
+    width: calc(100% - 32px);
+    max-width: 1500px;
+  }
+  html.ccp-bs5-preview #top > .container {
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    min-height: 40px;
+  }
+  html.ccp-bs5-preview #top #top-links {
+    flex: 0 1 auto;
+    margin-left: auto;
+  }
+  html.ccp-bs5-preview #top #top-links > ul {
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    gap: 4px;
+  }
+  html.ccp-bs5-preview .ccp-head > header > .container > .row {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+  }
+  html.ccp-bs5-preview .ccp-head > header .ccp-header-brand-col { flex: 0 0 31%; width: 31%; }
+  html.ccp-bs5-preview .ccp-head > header .ccp-header-search-col { flex: 0 0 39%; width: 39%; }
+  html.ccp-bs5-preview .ccp-head > header .ccp-header-cart-col { flex: 0 0 30%; width: 30%; }
+}
+/* BS3 shim applies .row>.col-xs-6{width:50%!important} to grid children.
+   With display:grid this halves each card AGAIN. Reset explicit widths at
+   the grid-item boundary without affecting the row/column Bootstrap layout. */
+html.ccp-bs5-preview #product-category .row.ccp-product-grid,
+html.ccp-bs5-preview #content .row.ccp-product-grid {
+  display: grid !important;
+  width: auto;
+  max-width: 100%;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  align-items: stretch;
+  grid-auto-flow: row;
+}
+html.ccp-bs5-preview #product-category .row.ccp-product-grid > .product-layout,
+html.ccp-bs5-preview #content .row.ccp-product-grid > .product-layout {
+  display: flex !important;
+  box-sizing: border-box;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  float: none !important;
+  flex: none;
+  grid-column: auto;
+}
+html.ccp-bs5-preview #content .row.ccp-product-grid > .product-grid > .product-thumb {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+}
+html.ccp-bs5-preview #content .row.ccp-product-grid > .product-grid .ccp-product-list-body {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+html.ccp-bs5-preview #content .row.ccp-product-grid > .product-grid .caption {
+  min-width: 0;
+  width: 100%;
+}
+html.ccp-bs5-preview #content .row.ccp-product-grid > .product-grid .button-group {
+  display: grid !important;
+  grid-template-columns: minmax(0,1fr) 44px 44px;
+  width: 100%;
+  flex: 0 0 auto;
+}
+html.ccp-bs5-preview #content .row.ccp-product-grid > .product-grid .button-group > button {
+  min-width: 0 !important;
+  width: 100% !important;
+  padding-inline: 4px;
+  overflow: hidden;
+}
+html.ccp-bs5-preview #content .row.ccp-product-grid > .product-grid .button-group .ccp-cart-add {
+  padding-inline: 8px;
+}
+@media (min-width: 1200px) {
+  html.ccp-bs5-preview #product-category #content.col-sm-9 .row.ccp-product-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+  html.ccp-bs5-preview #product-category #content.col-sm-12 .row.ccp-product-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}
+@media (min-width: 768px) and (max-width: 1199.98px) {
+  html.ccp-bs5-preview #product-category #content .row.ccp-product-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+@media (max-width: 767.98px) {
+  html.ccp-bs5-preview #product-category #content .row.ccp-product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+  html.ccp-bs5-preview #product-category .ccp-category-intro {
+    display: block !important;
+  }
+  html.ccp-bs5-preview #product-category .ccp-category-intro__photo {
+    display: block;
+    float: none;
+    width: 100%;
+    max-width: 100%;
+    margin: 0 0 12px;
+  }
+  html.ccp-bs5-preview #content .row.ccp-product-grid .product-thumb .image {
+    width: 100%;
+    height: 148px;
+    padding: 8px;
+  }
+  html.ccp-bs5-preview #content .row.ccp-product-grid .product-thumb .caption {
+    padding: 10px 9px 8px;
+  }
+  html.ccp-bs5-preview #content .row.ccp-product-grid .product-thumb h4 {
+    min-height: 36px;
+    font-size: 13px;
+    line-height: 18px;
+  }
+  html.ccp-bs5-preview #content .row.ccp-product-grid .product-thumb .button-group {
+    grid-template-columns: minmax(0,1fr) 40px 40px;
+  }
+  html.ccp-bs5-preview .ccp-head {
+    display: grid !important;
+    grid-template-columns: minmax(0,1fr) minmax(92px,32%);
+    gap: 8px;
+    align-items: center;
+    padding: 0 12px 12px;
+  }
+  html.ccp-bs5-preview .ccp-head > header,
+  html.ccp-bs5-preview .ccp-head > header > .container,
+  html.ccp-bs5-preview .ccp-head > header > .container > .row {
+    display: contents !important;
+  }
+  html.ccp-bs5-preview .ccp-head > header .ccp-header-brand-col {
+    grid-column: 1 / -1;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+  html.ccp-bs5-preview .ccp-head > header .ccp-header-search-col {
+    grid-column: 1;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0;
+    padding: 0 !important;
+  }
+  html.ccp-bs5-preview .ccp-head > header .ccp-header-cart-col {
+    grid-column: 2;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0;
+    padding: 0 !important;
+  }
+  html.ccp-bs5-preview .ccp-head .ccp-header-search-col .ccp-search {
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+  }
+  html.ccp-bs5-preview .ccp-head .ccp-header-search-col #search {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch;
+    width: 100%;
+    height: 44px;
+    min-width: 0;
+    margin: 0 !important;
+  }
+  html.ccp-bs5-preview .ccp-head .ccp-header-search-col #search > input.form-control {
+    display: block;
+    flex: 1 1 0;
+    width: 1% !important;
+    min-width: 0 !important;
+    height: 44px;
+    margin: 0;
+    border-radius: 8px 0 0 8px;
+  }
+  html.ccp-bs5-preview .ccp-head .ccp-header-search-col #search > .input-group-btn {
+    display: flex !important;
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    margin: 0;
+  }
+  html.ccp-bs5-preview .ccp-head .ccp-header-search-col #search .btn {
+    width: 44px !important;
+    min-width: 44px !important;
+    height: 44px;
+    margin: 0;
+    padding: 0;
+    border-radius: 0 8px 8px 0;
+  }
+  html.ccp-bs5-preview .ccp-head .ccp-header-cart-col #cart,
+  html.ccp-bs5-preview .ccp-head .ccp-header-cart-col #cart > .btn {
+    width: 100%;
+    height: 44px;
+    margin: 0;
+  }
+  html.ccp-bs5-preview .ccp-head > .container {
+    grid-column: 1 / -1;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  html.ccp-bs5-preview #top > .container {
+    justify-content: flex-start;
+    gap: 3px 8px;
+  }
+  html.ccp-bs5-preview #top #top-links {
+    margin-inline-start: auto;
+  }
+}
+@media (max-width: 359.98px) {
+  html.ccp-bs5-preview #content .row.ccp-product-grid {
+    gap: 8px !important;
+  }
+  html.ccp-bs5-preview #content .row.ccp-product-grid .product-thumb .button-group {
+    grid-template-columns: minmax(0,1fr) 36px 36px;
+  }
+}
