@@ -494,7 +494,6 @@ class ControllerExtensionCaptchaBasic extends Controller {
     private function json(array $data, $status) {
         $status = (int)$status;
         if ($status !== 200) {
-            $reasons = array(400 => 'Bad Request', 429 => 'Too Many Requests');
             $this->response->setStatusCode($status);
         }
         $this->response->addHeader('Content-Type: application/json; charset=utf-8');
