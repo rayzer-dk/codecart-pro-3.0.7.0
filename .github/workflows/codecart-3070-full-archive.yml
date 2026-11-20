@@ -36,7 +36,7 @@ jobs:
         run: |
           set -euo pipefail
           last="$(git ls-remote --tags origin 'refs/tags/v3.0.7.0-build.0.0.*' |
-            sed -nE 's@.*refs/tags/v3\\.0\\.7\\.0-build\\.0\\.0\\.([0-9]+)$@\\1@p' | sort -n | tail -1)"
+            sed -nE 's@.*refs/tags/v3\.0\.7\.0-build\.0\.0\.([0-9]+)$@\1@p' | sort -n | tail -1)"
           next=$(( ${last:-0} + 1 ))
           echo "CODECART_RELEASE_BUILD=0.0.$next" >> "$GITHUB_ENV"
           echo "Building CodeCart PRO 3.0.7.0, release build 0.0.$next"
