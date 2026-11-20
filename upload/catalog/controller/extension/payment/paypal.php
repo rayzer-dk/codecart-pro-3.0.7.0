@@ -1030,7 +1030,6 @@ class ControllerExtensionPaymentPayPal extends Controller {
 				
 				$item_total = number_format($item_total, $decimal_place, '.', '');
 				$tax_total = number_format($tax_total * $currency_value, $decimal_place, '.', '');
-				
 				$discount_total = 0;
 				$handling_total = 0;
 				$shipping_total = 0;
@@ -4307,7 +4306,7 @@ class ControllerExtensionPaymentPayPal extends Controller {
 					'grant_type' => 'client_credentials'
 				);	
 				
-				$result = $paypal->setAccessToken($token_info);
+				$paypal->setAccessToken($token_info);
 				
 				$result = $paypal->deletePaymentToken($vault_id);
 				
@@ -5248,7 +5247,7 @@ class ControllerExtensionPaymentPayPal extends Controller {
 					$webhook_repeat = 0;
 			
 					if ($paypal->hasErrors()) {
-						$error_messages = array();
+						
 				
 						$errors = $paypal->getErrors();
 							
