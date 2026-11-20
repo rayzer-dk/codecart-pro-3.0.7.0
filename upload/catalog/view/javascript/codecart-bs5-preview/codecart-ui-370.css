@@ -760,3 +760,85 @@ html.ccp-bs5-preview #product-product .ccp-product-buy-row {
     max-height: 64px;
   }
 }
+
+/* CodeCart PRO 3.0.7.0: storefront geometry regression guards.
+   Scope container rule to the rendered pages: the preview-specific
+   :is(...).container max-width:100% otherwise defeats a generic 1500px rule. */
+@media (min-width:1200px) {
+  html.ccp-bs5-preview #product-category.container,
+  html.ccp-bs5-preview #product-product.container,
+  html.ccp-bs5-preview #checkout-cart.container,
+  html.ccp-bs5-preview #checkout-checkout.container,
+  html.ccp-bs5-preview #account-login.container {
+    width: calc(100% - 32px) !important;
+    max-width: 1500px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+  html.ccp-bs5-preview .ccp-head > header > .container,
+  html.ccp-bs5-preview .ccp-head > .container,
+  html.ccp-bs5-preview #top > .container {
+    width: calc(100% - 32px) !important;
+    max-width: 1500px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+}
+/* The product summary should size to its content rather than inherit
+   the exceptionally tall column formed by option-heavy products. */
+@media (min-width:768px) {
+  html.ccp-bs5-preview #product-product .ccp-product-main > .ccp-product-summary {
+    align-self: start !important;
+  }
+  html.ccp-bs5-preview #product-product .ccp-product-summary-card {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+}
+html.ccp-bs5-preview #product-category .ccp-product-grid > .product-grid .product-thumb,
+html.ccp-bs5-preview #content .ccp-product-grid > .product-grid .product-thumb {
+  min-width: 0;
+  max-width: 100%;
+}
+html.ccp-bs5-preview #content .ccp-product-grid .caption .price,
+html.ccp-bs5-preview #content .ccp-product-grid .caption .price-tax {
+  overflow-wrap: anywhere;
+}
+html.ccp-bs5-preview #product-product .ccp-product-summary .ccp-product-buy-row,
+html.ccp-bs5-preview #product-product .ccp-product-summary .ccp-product-secondary-actions {
+  max-width: 100%;
+  min-width: 0;
+}
+@media (max-width:767.98px) {
+  html.ccp-bs5-preview #product-category.container,
+  html.ccp-bs5-preview #product-product.container {
+    max-width: 100%;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+  html.ccp-bs5-preview #product-product .ccp-product-summary-card {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+  html.ccp-bs5-preview #product-product .ccp-product-summary .ccp-product-buy-row {
+    grid-template-columns: minmax(100px, 120px) minmax(0, 1fr);
+  }
+  html.ccp-bs5-preview #product-product .ccp-product-summary .ccp-quantity-control {
+    width: 100%;
+    max-width: 120px;
+  }
+  html.ccp-bs5-preview #product-category .ccp-category-intro {
+    margin-top: 12px;
+    margin-bottom: 16px;
+  }
+  html.ccp-bs5-preview #product-category .ccp-category-intro__photo {
+    height: auto;
+    max-height: 280px;
+    object-fit: contain;
+    object-position: center;
+  }
+  html.ccp-bs5-preview #product-category .ccp-toolbar .ccp-toolbar__sort,
+  html.ccp-bs5-preview #product-category .ccp-toolbar .ccp-toolbar__limit {
+    min-width: 0;
+  }
+}
