@@ -1809,11 +1809,6 @@ class ControllerSaleOrder extends Controller {
 					'country'   => $order_info['shipping_country']
 				);
 
-				$address_tokens = array(
-					'{firstname}', '{lastname}', '{company}', '{address_1}', '{address_2}',
-					'{city}', '{postcode}', '{zone}', '{zone_code}', '{country}'
-				);
-
 				$shipping_address = str_replace(array("\r\n", "\r", "\n"), '<br />', preg_replace(array("/\s\s+/", "/\r\r+/", "/\n\n+/"), '<br />', trim(str_replace($address_tokens, $replace, $format))));
 
 				$this->load->model('tool/upload');
@@ -1986,7 +1981,7 @@ class ControllerSaleOrder extends Controller {
 					'country'   => $order_info['shipping_country']
 				);
 
-				$shipping_address = str_replace(array("\r\n", "\r", "\n"), '<br />', preg_replace(array("/\s\s+/", "/\r\r+/", "/\n\n+/"), '<br />', trim(str_replace($find, $replace, $format))));
+				$shipping_address = str_replace(array("\r\n", "\r", "\n"), '<br />', preg_replace(array("/\s\s+/", "/\r\r+/", "/\n\n+/"), '<br />', trim(str_replace(array('{firstname}', '{lastname}', '{company}', '{address_1}', '{address_2}', '{city}', '{postcode}', '{zone}', '{zone_code}', '{country}'), $replace, $format))));
 
 				$this->load->model('tool/upload');
 
