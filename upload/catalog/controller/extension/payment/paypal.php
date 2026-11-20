@@ -752,7 +752,7 @@ class ControllerExtensionPaymentPayPal extends Controller {
 				$token_info['domains'][] = $this->request->server['HTTP_HOST'];
 			}
 							
-			$result = $paypal->setAccessToken($token_info);
+			$paypal->setAccessToken($token_info);
 			
 			if ($setting['general']['vault_status'] && !empty($result['id_token'])) {
 				$data['id_token'] = $result['id_token'];
@@ -1030,7 +1030,6 @@ class ControllerExtensionPaymentPayPal extends Controller {
 				
 				$item_total = number_format($item_total, $decimal_place, '.', '');
 				$tax_total = number_format($tax_total * $currency_value, $decimal_place, '.', '');
-				$order_total = number_format($item_total + $tax_total, $decimal_place, '.', '');
 				
 				$discount_total = 0;
 				$handling_total = 0;
@@ -1243,7 +1242,6 @@ class ControllerExtensionPaymentPayPal extends Controller {
 						if (isset($paypal_order_info['payment_source']['card']) && !$this->error) {
 							$this->model_extension_payment_paypal->log($paypal_order_info['payment_source']['card'], 'Card');
 						
-							$liability_shift = (isset($paypal_order_info['payment_source']['card']['authentication_result']['liability_shift']) ? $paypal_order_info['payment_source']['card']['authentication_result']['liability_shift'] : '');
 							$enrollment_status = (isset($paypal_order_info['payment_source']['card']['authentication_result']['three_d_secure']['enrollment_status']) ? $paypal_order_info['payment_source']['card']['authentication_result']['three_d_secure']['enrollment_status'] : '');
 							$authentication_status = (isset($paypal_order_info['payment_source']['card']['authentication_result']['three_d_secure']['authentication_status']) ? $paypal_order_info['payment_source']['card']['authentication_result']['three_d_secure']['authentication_status'] : '');
 								
@@ -1889,7 +1887,6 @@ class ControllerExtensionPaymentPayPal extends Controller {
 					if (isset($paypal_order_info['payment_source']['card']) && !$this->error) {
 						$this->model_extension_payment_paypal->log($paypal_order_info['payment_source']['card'], 'Card');
 						
-						$liability_shift = (isset($paypal_order_info['payment_source']['card']['authentication_result']['liability_shift']) ? $paypal_order_info['payment_source']['card']['authentication_result']['liability_shift'] : '');
 						$enrollment_status = (isset($paypal_order_info['payment_source']['card']['authentication_result']['three_d_secure']['enrollment_status']) ? $paypal_order_info['payment_source']['card']['authentication_result']['three_d_secure']['enrollment_status'] : '');
 						$authentication_status = (isset($paypal_order_info['payment_source']['card']['authentication_result']['three_d_secure']['authentication_status']) ? $paypal_order_info['payment_source']['card']['authentication_result']['three_d_secure']['authentication_status'] : '');
 								
@@ -2318,13 +2315,6 @@ class ControllerExtensionPaymentPayPal extends Controller {
 			'href' => $this->url->link('extension/payment/paypal/confirmOrder', '', true)
 		);
 		
-		$points_total = 0;
-
-		foreach ($this->cart->getProducts() as $product) {
-			if ($product['points']) {
-				$points_total += $product['points'];
-			}
-		}
 		
 		if (isset($this->request->post['next'])) {
 			$data['next'] = $this->request->post['next'];
@@ -2341,6 +2331,7 @@ class ControllerExtensionPaymentPayPal extends Controller {
 		$data['products'] = array();
 		
 		$products = $this->cart->getProducts();
+		$minimum_warning = '';
 
 		foreach ($products as $product) {
 			$product_total = 0;
@@ -2352,7 +2343,7 @@ class ControllerExtensionPaymentPayPal extends Controller {
 			}
 
 			if ($product['minimum'] > $product_total) {
-				$data['error_warning'] = sprintf($this->language->get('error_minimum'), $product['name'], $product['minimum']);
+				$minimum_warning = sprintf($this->language->get('error_minimum'), $product['name'], $product['minimum']);
 			}
 
 			if ($product['image']) {
@@ -2668,6 +2659,10 @@ class ControllerExtensionPaymentPayPal extends Controller {
 			unset($this->session->data['error_warning']);
 		} else {
 			$data['error_warning'] = '';
+		}
+
+		if ($minimum_warning !== '') {
+			$data['error_warning'] = trim((string)$data['error_warning'] . "\n" . $minimum_warning);
 		}
 
 		if (isset($this->session->data['success'])) {
@@ -3246,7 +3241,7 @@ class ControllerExtensionPaymentPayPal extends Controller {
 					'value' => $amount_info
 				);
 					
-				$result = $paypal->updateOrder($paypal_order_id, $paypal_order_info);
+				$paypal->updateOrder($paypal_order_id, $paypal_order_info);
 			
 				if ($paypal->hasErrors()) {
 					$error_messages = array();
@@ -3810,7 +3805,6 @@ class ControllerExtensionPaymentPayPal extends Controller {
 						if (isset($paypal_order_info['payment_source']['card']) && !$this->error) {
 							$this->model_extension_payment_paypal->log($paypal_order_info['payment_source']['card'], 'Card');
 						
-							$liability_shift = (isset($paypal_order_info['payment_source']['card']['authentication_result']['liability_shift']) ? $paypal_order_info['payment_source']['card']['authentication_result']['liability_shift'] : '');
 							$enrollment_status = (isset($paypal_order_info['payment_source']['card']['authentication_result']['three_d_secure']['enrollment_status']) ? $paypal_order_info['payment_source']['card']['authentication_result']['three_d_secure']['enrollment_status'] : '');
 							$authentication_status = (isset($paypal_order_info['payment_source']['card']['authentication_result']['three_d_secure']['authentication_status']) ? $paypal_order_info['payment_source']['card']['authentication_result']['three_d_secure']['authentication_status'] : '');
 								
@@ -4858,7 +4852,6 @@ class ControllerExtensionPaymentPayPal extends Controller {
 					if (isset($paypal_order_info['payment_source']['card']) && !$this->error) {
 						$this->model_extension_payment_paypal->log($paypal_order_info['payment_source']['card'], 'Card');
 						
-						$liability_shift = (isset($paypal_order_info['payment_source']['card']['authentication_result']['liability_shift']) ? $paypal_order_info['payment_source']['card']['authentication_result']['liability_shift'] : '');
 						$enrollment_status = (isset($paypal_order_info['payment_source']['card']['authentication_result']['three_d_secure']['enrollment_status']) ? $paypal_order_info['payment_source']['card']['authentication_result']['three_d_secure']['enrollment_status'] : '');
 						$authentication_status = (isset($paypal_order_info['payment_source']['card']['authentication_result']['three_d_secure']['authentication_status']) ? $paypal_order_info['payment_source']['card']['authentication_result']['three_d_secure']['authentication_status'] : '');
 								
