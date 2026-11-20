@@ -397,8 +397,6 @@ class ControllerProductProduct extends Controller {
 				$data['image_popup_width'] = (int)$popup_size['width'];
 				$data['image_popup_height'] = (int)$popup_size['height'];
 
-				$data['image_display_width'] = max(1, (int)$data['image_thumb_width']);
-				$data['image_display_height'] = max(1, (int)$data['image_thumb_height']);
 				$display_width = $is_codecart_gallery && $gallery_mode === 'native' ? max(1, (int)$data['image_thumb_width']) : max(1400, (int)$data['image_thumb_width']);
 				$display_height = $is_codecart_gallery && $gallery_mode === 'native' ? max(1, (int)$data['image_thumb_height']) : max(1050, (int)$data['image_thumb_height']);
 				$data['thumb'] = ($this->config->get('config_theme') === 'codecart' ? $this->model_tool_image->productGalleryImage($gallery_image, $display_width, $display_height, $gallery_mode) : $this->model_tool_image->display($gallery_image, $display_width, $display_height));
