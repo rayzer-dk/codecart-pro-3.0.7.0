@@ -37,7 +37,7 @@ class Migration {
             $lock_acquired = !empty($lock_query->row['acquired']);
 
             if (!$lock_acquired) {
-                return;
+                throw new \\RuntimeException('Another CodeCart core migration is active; advisory lock unavailable.');
             }
 
             // Filesystem/vendor activation is part of the same serialized upgrade
@@ -284,6 +284,7 @@ class Migration {
                 if (strlen($detail) > 500) { $detail = substr($detail, 0, 500) . '...'; }
                 $this->log->write('CodeCart PRO core migration failed at [' . $this->currentStep . ']: ' . $e->getMessage() . ($detail !== '' ? ' DB: ' . $detail : ''));
             }
+            throw new \\RuntimeException('CodeCart PRO core migration failed at [' . $this->currentStep . ']. Check the protected error log.', 0, $e);
         } finally {
             if ($lock_acquired) {
                 try {
