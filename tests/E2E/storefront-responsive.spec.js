@@ -74,6 +74,16 @@ test.describe('Storefront geometry and interactions', () => {
     const items = grid.locator(':scope > .product-layout.product-grid');
     await expect(items.first()).toBeVisible();
     const [g, c] = await Promise.all([box(grid), box(items.first())]);
+    if (width >= 1200) {
+      const columns = await grid.evaluate(node => {
+        const styles = getComputedStyle(node);
+        return styles.gridTemplateColumns.split(' ').filter(Boolean).length;
+      });
+      const hasSidebar = await page.locator('#product-category #column-left').count() > 0 ||
+        await page.locator('#product-category > .row > #content.col-sm-9').count() > 0;
+      expect.soft(columns, 'desktop catalog column count').toBe(hasSidebar ? 4 : 5);
+    }
+
     expect.soft(c.width, 'product grid cell width').toBeGreaterThan(120);
     expect.soft(c.width, 'product does not exceed grid').toBeLessThanOrEqual(g.width + 2);
     const thumb = await box(items.first().locator('.product-thumb'));
