@@ -86,8 +86,6 @@ class ControllerBlogCategory extends Controller {
 				$url .= '&limit=' . $this->request->get['limit'];
 			}
 
-			$blog_category_id = '';
-
 			$parts = explode('_', (string)$this->request->get['blog_category_id']);
 
 			$blog_category_id = (int)array_pop($parts);
