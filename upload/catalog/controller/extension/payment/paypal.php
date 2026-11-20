@@ -1030,6 +1030,7 @@ class ControllerExtensionPaymentPayPal extends Controller {
 				
 				$item_total = number_format($item_total, $decimal_place, '.', '');
 				$tax_total = number_format($tax_total * $currency_value, $decimal_place, '.', '');
+				$order_total = number_format($item_total + $tax_total, $decimal_place, '.', '');
 				$discount_total = 0;
 				$handling_total = 0;
 				$shipping_total = 0;
@@ -3650,7 +3651,6 @@ class ControllerExtensionPaymentPayPal extends Controller {
 				
 				$item_total = number_format($item_total, $decimal_place, '.', '');
 				$tax_total = number_format($tax_total * $currency_value, $decimal_place, '.', '');
-				$order_total = number_format($item_total + $tax_total, $decimal_place, '.', '');
 				
 				$discount_total = 0;
 				$handling_total = 0;
