@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/codecart-3070-full-archive.yml'
+      - '.github/workflows/playwright-e2e.yml'
+      - '.github/workflows/source-quality-deep.yml'
       - 'tools/package_production.py'
       - 'tools/refresh_integrity.php'
       - 'tools/package_documentation.py'
