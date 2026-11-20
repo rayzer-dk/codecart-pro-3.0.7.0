@@ -128,8 +128,6 @@ class ControllerSettingStore extends Controller {
 			'edit'     => $this->url->link('setting/setting', 'user_token=' . $this->session->data['user_token'], true)
 		);
 
-		$store_total = $this->model_setting_store->getTotalStores();
-
 		$results = $this->model_setting_store->getStores();
 
 		foreach ($results as $result) {
