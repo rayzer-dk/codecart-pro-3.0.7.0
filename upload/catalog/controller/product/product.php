@@ -387,8 +387,6 @@ class ControllerProductProduct extends Controller {
 
 			$popup_width = $is_codecart_gallery && $gallery_mode === 'native' ? max(1, (int)$this->config->get('theme_codecart_image_popup_width')) : max(1400, (int)$this->config->get('theme_' . $this->config->get('config_theme') . '_image_popup_width'));
 			$popup_height = $is_codecart_gallery && $gallery_mode === 'native' ? max(1, (int)$this->config->get('theme_codecart_image_popup_height')) : max(1050, (int)$this->config->get('theme_' . $this->config->get('config_theme') . '_image_popup_height'));
-			$data['image_popup_width'] = $popup_width;
-			$data['image_popup_height'] = $popup_height;
 				$gallery_image = !empty($product_info['image']) ? (string)$product_info['image'] : (string)$this->config->get('config_catalog_fallback_image');
 				if ($gallery_image === '') {
 					$gallery_image = 'no_image.webp';
