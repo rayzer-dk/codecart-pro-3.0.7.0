@@ -64,7 +64,7 @@ def build(root, output):
         raise ValueError('Invalid package build')
     output.mkdir(parents=True, exist_ok=True)
     release_build = os.environ.get('CODECART_RELEASE_BUILD', '').strip()
-    if release_build and not re.fullmatch(r'0\\.0\\.[1-9][0-9]*', release_build):
+    if release_build and not re.fullmatch(r'0\.0\.[1-9][0-9]*', release_build):
         raise ValueError('Invalid release build (expected 0.0.1, 0.0.2, ...)')
     archive_stem = 'CodeCart_PRO_' + version[1]
     if release_build:
