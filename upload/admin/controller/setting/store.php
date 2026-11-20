@@ -98,12 +98,6 @@ class ControllerSettingStore extends Controller {
 	}
 
 	protected function getList() {
-		$url = '';
-
-		if (isset($this->request->get['page'])) {
-			$url .= '&page=' . $this->request->get['page'];
-		}
-
 		$data['breadcrumbs'] = array();
 
 		$data['breadcrumbs'][] = array(
