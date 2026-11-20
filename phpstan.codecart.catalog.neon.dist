@@ -7,6 +7,7 @@ parameters:
         - upload/system/helper/general.php
         - upload/system/helper/utf8.php
         - upload/system/helper/codecart_checkout.php
+        - upload/system/helper/error_page.php
     dynamicConstantNames:
         - DB_PREFIX
         - DIR_SYSTEM
