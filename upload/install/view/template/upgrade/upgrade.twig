@@ -25,8 +25,17 @@
 </div>
 <script>
 var step = 0;
-$('#backup-confirm').on('change', function(){ if (!{{ preflight_blockers }}) { $('#button-continue').prop('disabled', !this.checked); } });
+function updateContinueState() {
+  var checkbox = document.getElementById('backup-confirm');
+  var button = document.getElementById('button-continue');
+  if (!checkbox || !button) { return; }
+  button.disabled = {{ preflight_blockers }} > 0 || !checkbox.checked;
+}
+document.getElementById('backup-confirm').addEventListener('change', updateContinueState);
+window.addEventListener('pageshow', updateContinueState);
+updateContinueState();
 $('#button-continue').on('click', function() {
+  if (this.disabled || !document.getElementById('backup-confirm').checked) { return; }
   $('#progress-bar').removeClass('progress-bar-danger').addClass('progress-bar-success').css('width','0%');
   $('#progress-text').empty();
   $('#button-continue').prop('disabled', true).find('i').attr('class','fa-solid fa-spinner fa-spin');
@@ -42,7 +51,8 @@ function start(url) {
       if (json.error) {
         $('#progress-bar').removeClass('progress-bar-success').addClass('progress-bar-danger');
         $('#progress-text').html($('<div class="text-danger"></div>').text(json.error));
-        $('#button-continue').prop('disabled', false).find('i').attr('class','fa-solid fa-play');
+        $('#button-continue').find('i').attr('class','fa-solid fa-play');
+        updateContinueState();
         return;
       }
       if (json.success) { $('#progress-text').html($('<span class="text-success"></span>').text(json.success)); }
@@ -54,7 +64,8 @@ function start(url) {
     error: function() {
       $('#progress-bar').removeClass('progress-bar-success').addClass('progress-bar-danger');
       $('#progress-text').html($('<div class="text-danger"></div>').text('{{ error_ajax|e('js') }}'));
-      $('#button-continue').prop('disabled', false).find('i').attr('class','fa-solid fa-play');
+      $('#button-continue').find('i').attr('class','fa-solid fa-play');
+      updateContinueState();
     }
   });
 }
