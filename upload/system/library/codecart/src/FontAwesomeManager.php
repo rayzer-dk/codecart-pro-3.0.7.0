@@ -263,6 +263,8 @@ final class FontAwesomeManager {
     private function normalizeName($name) {
         $name = strtolower(trim((string)$name));
         if (strpos($name, 'fa-') === 0) { $name = substr($name, 3); }
+        // Legacy Font Awesome 4 name; the bundled FA7 glyph is circle-notch.
+        if ($name === 'circle-o-notch') { $name = 'circle-notch'; }
         return preg_match('/^[a-z0-9][a-z0-9-]*$/', $name) ? $name : '';
     }
 
