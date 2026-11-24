@@ -84,7 +84,7 @@
             </div>
 
             <h2 class="cc-section-title">{{ text_extension_write }} <small>({{ text_optional }})</small></h2>
-            <p class="help-block">{{ text_extension_write_help }}</p>
+            <p class="form-text">{{ text_extension_write_help }}</p>
             <div class="table-responsive">
               <table class="table cc-status-table">
                 <thead><tr><th>{{ text_directory }}</th><th class="text-center">{{ text_status }}</th></tr></thead>
@@ -97,7 +97,7 @@
             </div>
             {% if not extension_install_writable %}<div class="alert alert-warning"><i class="fa-solid fa-triangle-exclamation"></i> {{ text_extension_write_help }}</div>{% endif %}
           </div>
-          <div class="cc-card-footer"><a href="{{ back }}" class="btn btn-default"><i class="fa-solid fa-arrow-left"></i> {{ button_back }}</a><button type="submit" class="btn btn-primary"{% if not can_continue %} disabled="disabled" title="{{ text_missing }}"{% endif %}>{{ button_continue }} <i class="fa-solid fa-arrow-right"></i></button></div>
+          <div class="cc-card-footer"><a href="{{ back }}" class="btn btn-outline-secondary"><i class="fa-solid fa-arrow-left"></i> {{ button_back }}</a><button type="submit" class="btn btn-primary"{% if not can_continue %} disabled="disabled" title="{{ text_missing }}"{% endif %}>{{ button_continue }} <i class="fa-solid fa-arrow-right"></i></button></div>
         </form>
       </main>
       {{ column_left }}

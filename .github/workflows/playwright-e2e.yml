@@ -69,6 +69,30 @@ jobs:
       - name: Install locked PHP dependencies
         run: composer install --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader
 
+      - name: Install Playwright test runner and browsers
+        run: |
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium firefox webkit
+
+      - name: Verify the fresh browser installer layout
+        env:
+          E2E_FRESH_INSTALLER: '1'
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -S 127.0.0.1:8080 -t upload > /tmp/codecart-installer-http.log 2>&1 &
+          installer_pid=$!
+          trap 'kill "$installer_pid" 2>/dev/null || true' EXIT
+          for i in {1..40}; do
+            if curl -fsS 'http://127.0.0.1:8080/install/index.php?route=install/step_3' >/dev/null; then
+              npm run test:e2e -- --grep '@fresh-installer'
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/codecart-installer-http.log
+          exit 1
+
       - name: Clean install on disposable MariaDB
         working-directory: upload/install
         shell: bash
@@ -112,21 +136,17 @@ jobs:
           cat /tmp/codecart-e2e-http.log
           exit 1
 
-      - name: Install Playwright test runner and browsers
-        run: |
-          npm install --no-audit --no-fund --package-lock=false
-          npx playwright install --with-deps chromium firefox webkit
-
       - name: Validate E2E test discovery
         run: npm run test:e2e:list
 
       - name: Run all four browser projects
-        run: npm run test:e2e
+        run: npm run test:e2e -- --grep-invert '@fresh-installer'
 
       - name: Inspect PHP application errors
         if: always()
         shell: bash
         run: |
+          cat /tmp/codecart-installer-http.log 2>/dev/null || true
           cat /tmp/codecart-e2e-http.log 2>/dev/null || true
           cat upload/system/storage/logs/error.log 2>/dev/null || true
           if grep -Eqi 'PHP (Fatal|Parse|Warning)|Uncaught (Exception|Error)|mysqli_sql_exception' upload/system/storage/logs/error.log 2>/dev/null; then

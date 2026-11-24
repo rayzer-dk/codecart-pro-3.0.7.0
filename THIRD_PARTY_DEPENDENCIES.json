@@ -5,15 +5,15 @@
   "packages": [
     {
       "name": "guzzlehttp/guzzle",
-      "version": "7.16.1"
+      "version": "8.5.2"
     },
     {
       "name": "guzzlehttp/promises",
-      "version": "2.6.0"
+      "version": "3.1.0"
     },
     {
       "name": "guzzlehttp/psr7",
-      "version": "2.13.2"
+      "version": "3.5.0"
     },
     {
       "name": "league/uri",
@@ -53,7 +53,7 @@
     },
     {
       "name": "symfony/filesystem",
-      "version": "6.4.50"
+      "version": "7.4.23"
     },
     {
       "name": "symfony/polyfill-ctype",
@@ -65,6 +65,10 @@
     },
     {
       "name": "symfony/polyfill-php80",
+      "version": "1.43.0"
+    },
+    {
+      "name": "symfony/polyfill-php82",
       "version": "1.43.0"
     },
     {

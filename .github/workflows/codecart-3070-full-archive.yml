@@ -7,6 +7,8 @@ on:
       - '.github/workflows/codecart-3070-full-archive.yml'
       - '.github/workflows/playwright-e2e.yml'
       - '.github/workflows/source-quality-deep.yml'
+      - '.github/workflows/dependency-audit.yml'
+      - 'THIRD_PARTY_DEPENDENCIES.json'
       - 'tools/package_production.py'
       - 'tools/refresh_integrity.php'
       - 'tools/package_documentation.py'
@@ -129,7 +131,7 @@ jobs:
         run: |
           set -euo pipefail
           sha="$GITHUB_SHA"
-          workflows=(modernization-pilot-qa.yml source-quality-deep.yml playwright-e2e.yml)
+          workflows=(modernization-pilot-qa.yml source-quality-deep.yml playwright-e2e.yml dependency-audit.yml)
           if [ "$(gh api "repos/$GITHUB_REPOSITORY/commits/main" --jq .sha)" != "$sha" ]; then
             echo "main advanced after package build; refusing stale release."
             exit 1
@@ -205,4 +207,4 @@ jobs:
             --repo "$GITHUB_REPOSITORY" \
             --target "$GITHUB_SHA" \
             --title "CodeCart PRO 3.0.7.0 — Build $build" \
-            --notes "Complete installable CodeCart PRO 3.0.7.0, build $build. SHA-256 and manifest attached. Modernization QA, first-party code quality and cross-browser Playwright E2E must all pass on the tagged commit."
+            --notes "Complete installable CodeCart PRO 3.0.7.0, build $build. SHA-256 and manifest attached. Modernization QA, first-party code quality, dependency audit and cross-browser Playwright E2E passed on the tagged commit."

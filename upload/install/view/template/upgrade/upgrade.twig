@@ -7,7 +7,7 @@
         <div class="cc-card-body">
           <div class="alert alert-warning"><i class="fa-solid fa-triangle-exclamation"></i> {{ text_backup }}</div>
           <h2 class="cc-section-title">{{ text_preflight }}</h2>
-          <p class="help-block">{{ text_preflight_help }}</p>
+          <p class="form-text">{{ text_preflight_help }}</p>
           {% if preflight_blockers %}<div class="alert alert-danger"><i class="fa-solid fa-circle-xmark"></i> {{ text_preflight_blocked }}</div>{% else %}<div class="alert alert-success"><i class="fa-solid fa-circle-check"></i> {{ text_preflight_ready }}</div>{% endif %}
           <div class="table-responsive"><table class="table cc-status-table"><thead><tr><th>{{ text_component }}</th><th>{{ text_current }}</th><th>{{ text_status }}</th><th></th></tr></thead><tbody>{% for row in preflight %}<tr><td>{{ row.component }}</td><td>{{ row.current }}</td><td>{% if row.state == 'ok' %}<span class="cc-state ok"><i class="fa-solid fa-circle-check"></i> {{ text_ok }}</span>{% elseif row.state == 'warning' %}<span class="cc-state warn"><i class="fa-solid fa-triangle-exclamation"></i> {{ text_warning }}</span>{% else %}<span class="cc-state bad"><i class="fa-solid fa-circle-xmark"></i> {{ text_blocker }}</span>{% endif %}</td><td>{{ row.message }}</td></tr>{% endfor %}</tbody></table></div>
           <h2 class="cc-section-title">{{ text_server }}</h2>
@@ -15,7 +15,7 @@
           <label class="cc-backup-confirm"><input type="checkbox" id="backup-confirm" value="1"{% if preflight_blockers %} disabled{% endif %}> {{ text_backup_confirm }}</label>
           <label class="cc-backup-confirm" style="margin-top:10px"><input type="checkbox" id="repair-mode" value="1"{% if preflight_blockers %} disabled{% endif %}> <strong>{{ text_repair_mode }}</strong><br><small style="margin-left:22px">{{ text_repair_help }}</small></label>
           <h2 class="cc-section-title">{{ text_steps }}</h2>
-          <div class="cc-form-section"><div class="progress"><div id="progress-bar" class="progress-bar" style="width:0%"></div></div><div id="progress-text"></div></div>
+          <div class="cc-form-section"><div class="progress" role="progressbar" aria-label="{{ text_steps }}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="progress-bar" class="progress-bar" style="width:0%"></div></div><div id="progress-text" aria-live="polite"></div></div>
         </div>
         <div class="cc-card-footer"><span></span><button type="button" id="button-continue" class="btn btn-primary" disabled{% if preflight_blockers %} title="{{ text_preflight_blocked }}"{% endif %}><i class="fa-solid fa-play"></i> {{ button_continue }}</button></div>
       </main>
@@ -25,6 +25,10 @@
 </div>
 <script>
 var step = 0;
+var progressBar = $('#progress-bar');
+function setProgress(value) {
+  progressBar.css('width', value + '%').parent().attr('aria-valuenow', value);
+}
 function updateContinueState() {
   var checkbox = document.getElementById('backup-confirm');
   var button = document.getElementById('button-continue');
@@ -36,7 +40,9 @@ window.addEventListener('pageshow', updateContinueState);
 updateContinueState();
 $('#button-continue').on('click', function() {
   if (this.disabled || !document.getElementById('backup-confirm').checked) { return; }
-  $('#progress-bar').removeClass('progress-bar-danger').addClass('progress-bar-success').css('width','0%');
+  step = 0;
+  progressBar.removeClass('bg-danger').addClass('bg-success');
+  setProgress(0);
   $('#progress-text').empty();
   $('#button-continue').prop('disabled', true).find('i').attr('class','fa-solid fa-spinner fa-spin');
   var repair = $('#repair-mode').is(':checked') ? '&repair=1' : '';
@@ -49,7 +55,7 @@ function start(url) {
     dataType: 'json',
     success: function(json) {
       if (json.error) {
-        $('#progress-bar').removeClass('progress-bar-success').addClass('progress-bar-danger');
+        progressBar.removeClass('bg-success').addClass('bg-danger');
         $('#progress-text').html($('<div class="text-danger"></div>').text(json.error));
         $('#button-continue').find('i').attr('class','fa-solid fa-play');
         updateContinueState();
@@ -57,12 +63,12 @@ function start(url) {
       }
       if (json.success) { $('#progress-text').html($('<span class="text-success"></span>').text(json.success)); }
       step++;
-      $('#progress-bar').css('width', Math.min(100, ((step / {{ total }}) * 100)) + '%');
+      setProgress(Math.min(100, Math.round(step * 100 / {{ total }})));
       if (json.next) { start(json.next); }
-      else { $('#progress-bar').css('width','100%'); $('#button-continue').replaceWith('<a href="{{ store }}" class="btn btn-primary"><i class="fa-solid fa-check"></i> {{ button_continue }}</a>'); }
+      else { setProgress(100); $('#button-continue').replaceWith('<a href="{{ store }}" class="btn btn-primary"><i class="fa-solid fa-check"></i> {{ button_continue }}</a>'); }
     },
     error: function() {
-      $('#progress-bar').removeClass('progress-bar-success').addClass('progress-bar-danger');
+      progressBar.removeClass('bg-success').addClass('bg-danger');
       $('#progress-text').html($('<div class="text-danger"></div>').text('{{ error_ajax|e('js') }}'));
       $('#button-continue').find('i').attr('class','fa-solid fa-play');
       updateContinueState();
