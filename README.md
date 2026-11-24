@@ -9,7 +9,7 @@ The primary development branch is `main` in this repository. Earlier CodeCart 3.
 - PHP 8.2–8.5; MySQL / MariaDB with InnoDB and utf8mb4.
 - Bootstrap 5.3.9, jQuery 4.1.0 and jQuery Migrate 4.0.2 by default; isolated Bootstrap 3.4.1 / jQuery 3.8.0 fallback for older extensions.
 - Font Awesome Free 7.3.1, AUTO/Core/Full icon modes and FA4 class compatibility.
-- Composer-locked Twig 3.30.0, Guzzle 8.5.2 and Symfony Filesystem 7.4.23.
+- Composer-locked Twig 3.31.1, Guzzle 8.5.2 and Symfony Filesystem 7.4.23.
 - CodeMirror 6 on migrated editors; CodeMirror 5 remains for legacy integrations.
 - Hybrid DateTimePicker; Air Datepicker 3.6.0 + Day.js 1.11.23 available as opt-in integration.
 

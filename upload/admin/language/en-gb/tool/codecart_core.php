@@ -436,7 +436,7 @@ $_['about_v_tls_strict'] = 'TLS 1.2–1.3, certificate check';
 $_['about_v_tls_starttls'] = 'STARTTLS, no minimum version';
 $_['about_advantages'] = array(
     'Runs on PHP 8.2–8.5. ocStore 3.0.3.7 declares PHP 5.4+, OpenCart 3.0.4.1 PHP 7.3+.',
-    'Newer libraries than every base: Twig 3.30 vs 2.14 / 3.8 / 3.24, Guzzle 8.5.2 vs 5.3 / 6.5 / 7.10.',
+    'Newer libraries than every base: Twig 3.31.1 vs 2.14 / 3.8 / 3.24, Guzzle 8.5.2 vs 5.3 / 6.5 / 7.10.',
     'Admin passwords use password_hash() instead of salted SHA-1, and two-factor sign-in is built in. None of the three base versions has either.',
     'Existing OpenCart 3 extensions keep working: Twig 2 class aliases, jQuery Migrate, Font Awesome 4 class names, OCMOD and events.',
     'Cron, queue, notifications, store health, integrity check and the database modernizer are part of the core, not separate modules.'
@@ -454,7 +454,7 @@ $_['about_added_items'] = array(
     'Read-only REST API v1 (off by default), Redis/APCu/Memcached cache, WebP/AVIF images.'
 );
 $_['about_updated_items'] = array(
-    'PHP 8.2–8.5; Twig 3.30, Guzzle 8.5.2, scssphp 2.1.',
+    'PHP 8.2–8.5; Twig 3.31.1, Guzzle 8.5.2, scssphp 2.1.',
     'jQuery 4.1.0 and Migrate 4.0.2 by default; jQuery 3.8.0 and Migrate 3.6.0 remain a compatibility fallback.',
     'Font Awesome 7.3.1 Free; Font Awesome 4 class names and font-family FontAwesome keep working through the bundled compatibility layer.',
     'Summernote 0.9.1, HTML Purifier 4.19.0, PhotoSwipe 5.4.4 as an alternative gallery.',

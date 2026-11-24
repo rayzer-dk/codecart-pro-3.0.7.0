@@ -10,6 +10,7 @@ $directories = [
     $root . '/upload/admin/view/template',
     $root . '/upload/catalog/view/theme/default/template',
     $root . '/upload/catalog/view/theme/codecart/template',
+    $root . '/upload/install/view/template',
 ];
 $count = 0;
 $errors = [];

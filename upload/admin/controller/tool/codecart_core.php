@@ -646,7 +646,7 @@ class ControllerToolCodeCartCore extends Controller {
         $rows = array(
             array('component'=>'PHP','opencart'=>'PHP 8.0–8.4','ocstore'=>'PHP 8.0–8.5','codecart'=>'PHP 8.2–8.5','status'=>'updated'),
             array('component'=>'Guzzle','opencart'=>'7.10.0','ocstore'=>'7.9.3','codecart'=>'8.5.2','status'=>'updated'),
-            array('component'=>'Twig','opencart'=>'3.24.0','ocstore'=>'3.21.1','codecart'=>'3.30.0','status'=>'updated'),
+            array('component'=>'Twig','opencart'=>'3.24.0','ocstore'=>'3.21.1','codecart'=>'3.31.1','status'=>'updated'),
             array('component'=>'Guzzle Promises','opencart'=>'2.3.0','ocstore'=>'2.2.0','codecart'=>'3.1.0','status'=>'updated'),
             array('component'=>'Guzzle PSR-7','opencart'=>'2.9.0','ocstore'=>'2.7.1','codecart'=>'3.5.0','status'=>'updated'),
             array('component'=>'League URI','opencart'=>'7.8.1','ocstore'=>'7.5.1','codecart'=>'7.10.0','status'=>'updated'),

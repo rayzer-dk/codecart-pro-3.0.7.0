@@ -1,6 +1,7 @@
 # CodeCart PRO 3.0.7.0
 
 - The browser installer now uses Bootstrap 5.3.9 form, grid, progress and button markup.
+- Updated Twig to 3.31.1 and added installer templates to the syntax check.
 - Release checks cover the fresh installer at desktop and mobile sizes and verify the Composer dependency list against the lock file.
 
 # CodeCart 3.0.6.0 — Build 2.3.25 (2026-11-16)

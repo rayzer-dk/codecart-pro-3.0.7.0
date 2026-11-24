@@ -83,6 +83,8 @@ jobs:
         run: |
           composer install --working-dir=tools/quality --no-interaction --prefer-dist --no-progress
           composer install --no-dev --no-interaction --prefer-dist --no-progress --optimize-autoloader
+      - name: Verify admin, storefront and installer Twig syntax
+        run: php tools/quality/twig_syntax_check.php
       - name: Resolve dynamically loaded OpenCart models
         run: |
           php tools/quality/generate_phpstan_models.php catalog

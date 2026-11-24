@@ -23,7 +23,7 @@
     "symfony/polyfill-ctype": "1.37.0",
     "symfony/polyfill-mbstring": "1.43.3",
     "symfony/polyfill-php80": "1.43.0",
-    "twig/twig": "3.30.0"
+    "twig/twig": "3.31.1"
   },
   "config": {
     "vendor-dir": "upload/system/storage/vendor",

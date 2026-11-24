@@ -32,7 +32,7 @@ foreach (($composer['packages'] ?? array()) as $package) {
 }
 foreach (array(
     'guzzlehttp/guzzle' => '8.5.2',
-    'twig/twig' => '3.30.0',
+    'twig/twig' => '3.31.1',
     'symfony/filesystem' => '7.4.23',
     'guzzlehttp/promises' => '3.1.0',
     'guzzlehttp/psr7' => '3.5.0'
