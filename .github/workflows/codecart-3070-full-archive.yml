@@ -162,7 +162,7 @@ jobs:
           echo 'Required QA did not complete successfully before the release deadline.'
           exit 1
       - name: Retrieve the exact verified installation artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: CodeCart_PRO_3.0.7.0_Full_Installable
           path: release-artifacts
