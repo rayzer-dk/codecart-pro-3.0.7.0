@@ -128,7 +128,7 @@ jobs:
         env:
           CCP_JQUERY_SERIES: '4'
         run: node experiments/bootstrap5-fa7/tools/summernote-browser-smoke.cjs
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: CodeCart-modern-vendor-preview
           path: |
@@ -178,7 +178,7 @@ jobs:
         run: npm run test:e2e
       - name: Publish Playwright report and failure artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: CodeCart-3.7.0-staging-playwright-results
           path: |
@@ -233,7 +233,7 @@ jobs:
           composer install --no-dev --no-interaction --prefer-dist --no-scripts --optimize-autoloader
           php -r '$p=json_decode(file_get_contents("composer.lock"),true); $v=[]; foreach($p["packages"] as $x){$v[$x["name"]]=$x["version"];} if(!preg_match("/^v?7\\.4\\./",$v["symfony/filesystem"]??"")) exit(1); if(($v["guzzlehttp/guzzle"]??"")!=="8.5.2") exit(2); echo "Pinned dependencies valid\\n";'
           composer audit --locked --no-interaction
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: CodeCart-Guzzle-security-review
           path: |

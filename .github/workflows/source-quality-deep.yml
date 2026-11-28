@@ -28,7 +28,7 @@ jobs:
         run: python tools/quality/audit_cross_references.py --out build/quality/cross-references.json
       - name: Publish inspectable inventory
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: codecart-first-party-reference-inventory
           path: build/quality/cross-references.json
@@ -61,7 +61,7 @@ jobs:
           echo "jscpd exit status: $status (advisory until legacy duplicates are triaged)" >> "$GITHUB_STEP_SUMMARY"
       - name: Upload duplicate report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: codecart-first-party-duplication
           path: build/quality/duplication.txt
@@ -114,7 +114,7 @@ jobs:
           sed -n '1,90p' build/quality/extra.txt
       - name: Upload PHPStan diagnostics
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: codecart-first-party-phpstan
           path: build/quality/
