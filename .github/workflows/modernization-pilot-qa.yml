@@ -17,7 +17,7 @@ jobs:
     name: Preview assets, JavaScript and PHP syntax
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
@@ -70,7 +70,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
@@ -144,7 +144,7 @@ jobs:
     name: Inventory all Playwright E2E scenarios (real store required to execute)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
@@ -166,7 +166,7 @@ jobs:
       E2E_ADMIN_USER: ${{ secrets.CODECART_E2E_ADMIN_USER }}
       E2E_ADMIN_PASSWORD: ${{ secrets.CODECART_E2E_ADMIN_PASSWORD }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
@@ -194,7 +194,7 @@ jobs:
       matrix:
         php: ['8.2', '8.3', '8.4', '8.5']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
@@ -222,7 +222,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'

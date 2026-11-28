@@ -32,7 +32,7 @@ jobs:
     timeout-minutes: 55
     steps:
       - name: Checkout complete source tree
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Allocate next monotonically increasing release build
         shell: bash
         run: |
@@ -123,7 +123,7 @@ jobs:
       actions: write
     steps:
       - name: Checkout release target for authenticated GitHub CLI
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Verify all required QA workflows on the exact release commit
         env:
           GH_TOKEN: ${{ github.token }}
